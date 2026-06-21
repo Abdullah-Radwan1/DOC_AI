@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell,
   CheckCheck,
@@ -9,13 +9,13 @@ import {
   AlertOctagon,
   Trash2,
   MailOpen,
-  BellOff
-} from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { notifications as initialNotifications } from '@/lib/mock-data';
+  BellOff,
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { notifications as initialNotifications } from "@/lib/mock-data";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   warning: AlertTriangle,
@@ -25,10 +25,10 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 const toneMap: Record<string, string> = {
-  warning: 'bg-amber-500/10 text-amber-500 dark:bg-amber-500/20',
-  success: 'bg-green-500/10 text-green-500 dark:bg-green-500/20',
-  danger: 'bg-red-500/10 text-red-500 dark:bg-red-500/20',
-  info: 'bg-blue-500/10 text-blue-500 dark:bg-blue-500/20',
+  warning: "bg-warning/10 text-warning dark:bg-warning/20",
+  success: "bg-success/10 text-success dark:bg-success/20",
+  danger: "bg-destructive/10 text-destructive dark:bg-destructive/20",
+  info: "bg-info/10 text-info dark:bg-info/20",
 };
 
 const containerVariants = {
@@ -47,27 +47,30 @@ const itemVariants = {
 
 export function NotificationsPage() {
   const [notifications, setNotifications] = useState(initialNotifications);
-  const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'alerts'>('all');
+  const [activeTab, setActiveTab] = useState<"all" | "unread" | "alerts">(
+    "all",
+  );
 
-  const filteredNotifications = notifications.filter(n => {
-    if (activeTab === 'unread') return !n.read;
-    if (activeTab === 'alerts') return n.type === 'warning' || n.type === 'danger';
+  const filteredNotifications = notifications.filter((n) => {
+    if (activeTab === "unread") return !n.read;
+    if (activeTab === "alerts")
+      return n.type === "warning" || n.type === "danger";
     return true;
   });
 
   const markAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
   const toggleRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(n => (n.id === id ? { ...n, read: !n.read } : n))
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n)),
     );
   };
 
   const deleteNotification = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
   const clearAll = () => {
@@ -82,7 +85,10 @@ export function NotificationsPage() {
       className="space-y-8 max-w-5xl mx-auto"
     >
       {/* Header */}
-      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <motion.div
+        variants={itemVariants}
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+      >
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
           <p className="text-muted-foreground mt-1">
@@ -90,14 +96,24 @@ export function NotificationsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {notifications.some(n => !n.read) && (
-            <Button variant="outline" size="sm" onClick={markAllRead} className="h-9">
+          {notifications.some((n) => !n.read) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={markAllRead}
+              className="h-9"
+            >
               <CheckCheck className="h-4 w-4 mr-2" />
               Mark all read
             </Button>
           )}
           {notifications.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={clearAll} className="h-9 text-muted-foreground hover:text-destructive">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAll}
+              className="h-9 text-muted-foreground hover:text-destructive"
+            >
               <Trash2 className="h-4 w-4 mr-2" />
               Clear all
             </Button>
@@ -121,17 +137,26 @@ export function NotificationsPage() {
             </TabsTrigger>
             <TabsTrigger value="unread" className="flex items-center gap-2">
               Unread
-              {notifications.filter(n => !n.read).length > 0 && (
-                <Badge className="ml-1 px-1.5 py-0 text-xs bg-blue-500 hover:bg-blue-600">
-                  {notifications.filter(n => !n.read).length}
+              {notifications.filter((n) => !n.read).length > 0 && (
+                <Badge className="ml-1 px-1.5 py-0 text-xs bg-brand hover:bg-brand-dark">
+                  {notifications.filter((n) => !n.read).length}
                 </Badge>
               )}
             </TabsTrigger>
             <TabsTrigger value="alerts" className="flex items-center gap-2">
               Alerts
-              {notifications.filter(n => n.type === 'warning' || n.type === 'danger').length > 0 && (
-                <Badge variant="destructive" className="ml-1 px-1.5 py-0 text-xs">
-                  {notifications.filter(n => n.type === 'warning' || n.type === 'danger').length}
+              {notifications.filter(
+                (n) => n.type === "warning" || n.type === "danger",
+              ).length > 0 && (
+                <Badge
+                  variant="destructive"
+                  className="ml-1 px-1.5 py-0 text-xs"
+                >
+                  {
+                    notifications.filter(
+                      (n) => n.type === "warning" || n.type === "danger",
+                    ).length
+                  }
                 </Badge>
               )}
             </TabsTrigger>
@@ -156,7 +181,9 @@ export function NotificationsPage() {
                         layout
                         onClick={() => toggleRead(n.id)}
                         className={`flex gap-4 p-5 hover:bg-muted/30 cursor-pointer transition-colors duration-200 relative group ${
-                          !n.read ? 'bg-primary/[0.02] dark:bg-primary/[0.04]' : ''
+                          !n.read
+                            ? "bg-primary/[0.02] dark:bg-primary/[0.04]"
+                            : ""
                         }`}
                       >
                         {/* Left Tone Icon */}
@@ -170,11 +197,13 @@ export function NotificationsPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className={`font-semibold text-sm sm:text-base ${!n.read ? 'text-foreground font-semibold' : 'text-muted-foreground'}`}>
+                              <span
+                                className={`font-semibold text-sm sm:text-base ${!n.read ? "text-foreground font-semibold" : "text-muted-foreground"}`}
+                              >
                                 {n.title}
                               </span>
                               {!n.read && (
-                                <Badge className="bg-blue-500 hover:bg-blue-600 h-5 text-[10px] px-2">
+                                <Badge className="bg-accent hover:bg-accent h-5 text-[10px] px-2">
                                   New
                                 </Badge>
                               )}
@@ -194,7 +223,7 @@ export function NotificationsPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 hover:bg-muted"
-                            title={n.read ? 'Mark as unread' : 'Mark as read'}
+                            title={n.read ? "Mark as unread" : "Mark as read"}
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleRead(n.id);
