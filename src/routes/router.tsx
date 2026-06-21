@@ -19,6 +19,7 @@ import { UploadPage } from '@/routes/upload';
 import { DocumentPage } from '@/routes/documents/$documentId';
 import { DocumentsPage } from '@/routes/documents/index';
 import { SettingsPage } from '@/routes/settings';
+import { NotificationsPage } from '@/routes/notifications';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,14 +55,16 @@ const authLayoutRoute = createRoute({
 const appLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'app',
-  beforeLoad: async () => {
-    const user = localStorage.getItem('docintel-mock-user');
-    if (!user) {
-      throw redirect({ to: '/login' });
-    }
-  },
   component: AppLayout,
 });
+
+// Auth helper
+const requireAuth = async () => {
+  const user = localStorage.getItem('docintel-mock-user');
+  if (!user) {
+    throw redirect({ to: '/login' });
+  }
+};
 
 // Auth Routes
 const loginRoute = createRoute({
@@ -99,6 +102,7 @@ const documentsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/documents',
   component: DocumentsPage,
+  beforeLoad: requireAuth,
 });
 
 const documentRoute = createRoute({
@@ -111,12 +115,27 @@ const settingsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/settings',
   component: SettingsPage,
+  beforeLoad: requireAuth,
+});
+
+const notificationsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/notifications',
+  component: NotificationsPage,
+  beforeLoad: requireAuth,
 });
 
 // Route tree
 const routeTree = rootRoute.addChildren([
   authLayoutRoute.addChildren([loginRoute, registerRoute, forgotPasswordRoute]),
-  appLayoutRoute.addChildren([dashboardRoute, uploadRoute, documentsRoute, documentRoute, settingsRoute]),
+  appLayoutRoute.addChildren([
+    dashboardRoute,
+    uploadRoute,
+    documentsRoute,
+    documentRoute,
+    settingsRoute,
+    notificationsRoute,
+  ]),
 ]);
 
 // Create router
