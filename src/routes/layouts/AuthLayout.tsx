@@ -1,6 +1,5 @@
 import { Outlet } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { FileSearch, Shield, BarChart3, Zap } from "lucide-react";
 
 export function AuthLayout() {
@@ -80,10 +79,6 @@ export function AuthLayout() {
 
       {/* Right Panel - Auth Form */}
       <div className="w-full lg:w-1/2 flex flex-col relative bg-background">
-        <div className="absolute top-6 right-6">
-          <ThemeToggle />
-        </div>
-
         <div className="flex-1 flex items-center justify-center px-6 py-12">
           <motion.div
             initial={{ opacity: 0, y: 10 }}

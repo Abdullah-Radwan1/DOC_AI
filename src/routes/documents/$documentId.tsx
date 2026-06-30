@@ -1,6 +1,9 @@
 import { useParams, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useDocument, useDocumentAnalysis } from "@/hooks/useDocuments";
+import { useComplianceQueries, useCreateComplianceQuery } from "@/hooks/useCompliance";
+import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -11,6 +14,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -38,6 +43,8 @@ import {
   Gavel,
   Target,
   Lightbulb,
+  MessageSquare,
+  Send,
 } from "lucide-react";
 
 const containerVariants = {
@@ -79,8 +86,24 @@ export function DocumentPage() {
   const { data: document, isLoading: docLoading } = useDocument(documentId);
   const { data: analysis, isLoading: analysisLoading } =
     useDocumentAnalysis(documentId);
+  const { user } = useAuth();
+  
+  const { data: queries, isLoading: queriesLoading } = useComplianceQueries(documentId);
+  const createQueryMutation = useCreateComplianceQuery();
+  const [newQuery, setNewQuery] = useState("");
 
-  const isLoading = docLoading || analysisLoading;
+  const isLoading = docLoading || analysisLoading || queriesLoading;
+
+  const handleAskQuery = async () => {
+    if (!newQuery.trim() || !user) return;
+    
+    await createQueryMutation.mutateAsync({
+      queryText: newQuery,
+      userId: user.id,
+      documentId: documentId,
+    });
+    setNewQuery("");
+  };
 
   if (isLoading) {
     return (
@@ -97,7 +120,7 @@ export function DocumentPage() {
     );
   }
 
-  const complianceScore = document?.compliance_score || 78;
+  const complianceScore = document?.compliance_score ?? 78;
 
   return (
     <motion.div
@@ -919,6 +942,60 @@ export function DocumentPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Compliance Queries Section */}
+      <motion.div variants={itemVariants}>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-brand" />
+              <CardTitle>Ask Compliance AI</CardTitle>
+            </div>
+            <CardDescription>
+              Ask specific compliance questions about this document.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Ask a question..."
+                value={newQuery}
+                onChange={(e) => setNewQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleAskQuery();
+                  }
+                }}
+              />
+              <Button onClick={handleAskQuery} disabled={createQueryMutation.isPending || !newQuery.trim()}>
+                {createQueryMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <Send className="mr-2 h-4 w-4" />
+                    Ask
+                  </>
+                )}
+              </Button>
+            </div>
+
+            <div className="space-y-4 mt-6">
+              {queries?.map((query) => (
+                <div key={query.id} className="p-4 rounded-lg border bg-muted/20">
+                  <p className="font-medium">Q: {query.queryText}</p>
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    {query.status === "completed" && query.response ? (
+                      <p>A: {JSON.stringify(query.response.response)}</p>
+                    ) : (
+                      <p className="italic">Status: {query.status}...</p>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>

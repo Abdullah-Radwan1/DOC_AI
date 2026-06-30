@@ -1,39 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { motion } from "framer-motion";
-import { useAuth, UserRole } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
-import {
-  FileSearch,
-  Mail,
-  Lock,
-  Loader2,
-  ArrowRight,
-  User,
-  Shield,
-  Eye,
-  BarChart3,
-} from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FileSearch, Mail, Lock, Loader2, ArrowRight } from "lucide-react";
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { signIn, mockSignIn } = useAuth();
+  const { signIn, user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [selectedRole, setSelectedRole] = useState<UserRole>("admin");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,20 +23,19 @@ export function LoginPage() {
     try {
       const { error } = await signIn(email, password);
       if (error) throw error;
-      navigate({ to: "/" });
+      navigate({ to: "/dashboard" });
     } catch (err) {
-      setError("Invalid email or password. Try Quick Login instead.");
+      setError((err as Error)?.message || "Invalid email or password.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleMockLogin = async () => {
-    setLoading(true);
-    await mockSignIn(selectedRole);
-    localStorage.setItem("docintel-mock-user", selectedRole);
-    navigate({ to: "/" });
-  };
+  useEffect(() => {
+    if (user) {
+      navigate({ to: "/dashboard" });
+    }
+  }, [user, navigate]);
 
   return (
     <div className="space-y-8">
@@ -78,75 +57,12 @@ export function LoginPage() {
         </p>
       </div>
 
-      {/* Demo Account Warning (neutral, Linear style) */}
-      <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <Shield className="h-5 w-5 text-white/70 mt-0.5" />
-          <div>
-            <p className="text-sm font-medium text-white">Demo Account</p>
-            <p className="text-xs text-white/60 mt-1">
-              Use Quick Login below. No real credentials required.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Login */}
-      <div className="space-y-4">
-        <Select
-          value={selectedRole}
-          onValueChange={(value) => setSelectedRole(value as UserRole)}
-        >
-          <SelectTrigger className="w-full h-11 bg-white/5 border border-white/10 text-white">
-            <SelectValue placeholder="Select role" />
-          </SelectTrigger>
-
-          <SelectContent className="bg-[#0A0A0A] border border-white/10 text-white">
-            <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="compliance_manager">
-              Compliance Manager
-            </SelectItem>
-            <SelectItem value="auditor">Auditor</SelectItem>
-            <SelectItem value="viewer">Viewer</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Button
-          onClick={handleMockLogin}
-          className="w-full h-11 bg-white text-black hover:bg-white/90"
-          disabled={loading}
-        >
-          {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <>
-              Quick Login as{" "}
-              {selectedRole
-                .replace("_", " ")
-                .replace(/\b\w/g, (l) => l.toUpperCase())}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </>
-          )}
-        </Button>
-      </div>
-
-      {/* Divider */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <Separator className="bg-white/10" />
-        </div>
-
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-black px-2 text-white/50">
-            or continue with email
-          </span>
-        </div>
-      </div>
-
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         {!!error && (
-          <div className="text-sm text-white/70 text-center">{error}</div>
+          <div className="text-sm text-red-400 text-center bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-2">
+            {error}
+          </div>
         )}
 
         {/* Email */}
@@ -154,7 +70,6 @@ export function LoginPage() {
           <Label htmlFor="email" className="text-white/80">
             Email
           </Label>
-
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
             <Input
@@ -164,6 +79,7 @@ export function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="pl-9 h-11 bg-white/5 border border-white/10 text-white placeholder:text-white/40"
+              required
             />
           </div>
         </div>
@@ -174,15 +90,7 @@ export function LoginPage() {
             <Label htmlFor="password" className="text-white/80">
               Password
             </Label>
-
-            <Link
-              to="/forgot-password"
-              className="text-sm text-white/60 hover:text-white"
-            >
-              Forgot password?
-            </Link>
           </div>
-
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
             <Input
@@ -192,6 +100,7 @@ export function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="pl-9 h-11 bg-white/5 border border-white/10 text-white placeholder:text-white/40"
+              required
             />
           </div>
         </div>

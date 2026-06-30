@@ -1,8 +1,6 @@
 import { Outlet, Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "@/hooks/useAuth";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +34,7 @@ import {
   Crown,
   FileSearch,
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const organizations = [
   { id: "1", name: "Acme Corporation", slug: "acme-corp" },
@@ -44,7 +43,7 @@ const organizations = [
 ];
 
 const navItems = [
-  { path: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { path: "/upload", icon: Upload, label: "Upload Document" },
   { path: "/documents", icon: FileText, label: "Documents" },
   { path: "/settings", icon: Settings, label: "Settings" },
@@ -348,8 +347,6 @@ export function AppLayout() {
 
               {/* Right Actions */}
               <div className="flex items-center gap-3">
-                <ThemeToggle />
-
                 {user ? (
                   /* Notifications & Profile */
                   <DropdownMenu>

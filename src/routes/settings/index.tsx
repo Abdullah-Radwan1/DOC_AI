@@ -15,7 +15,6 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Crown,
@@ -94,7 +93,6 @@ const itemVariants = {
 };
 
 export function SettingsPage() {
-  const { theme, setTheme } = useTheme();
   const { user } = useAuth();
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(
     "monthly",
@@ -481,29 +479,6 @@ export function SettingsPage() {
                     <p className="text-sm text-muted-foreground">
                       Select your preferred theme
                     </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant={theme === "light" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setTheme("light")}
-                    >
-                      Light
-                    </Button>
-                    <Button
-                      variant={theme === "dark" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setTheme("dark")}
-                    >
-                      Dark
-                    </Button>
-                    <Button
-                      variant={theme === "system" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setTheme("system")}
-                    >
-                      System
-                    </Button>
                   </div>
                 </div>
               </CardContent>

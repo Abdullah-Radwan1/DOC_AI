@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 export function RegisterPage() {
-  const { signUp } = useAuth();
+  const { signUp, user } = useAuth();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,6 +50,14 @@ export function RegisterPage() {
       setLoading(false);
     }
   };
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate({ to: "/dashboard" });
+    }
+  }, [user, navigate]);
 
   if (success) {
     return (
