@@ -93,13 +93,6 @@ const requireNoAuth = async () => {
   }
 };
 
-// Home Route (Public)
-const homeRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/",
-  component: HomePage,
-});
-
 // Public Layout Route
 const authLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -113,7 +106,6 @@ const appLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "app",
   component: AppLayout,
-  beforeLoad: requireAuth,
 });
 
 // Auth Routes
@@ -121,6 +113,12 @@ const loginRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
   path: "/login",
   component: LoginPage,
+});
+
+const HomeRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/",
+  component: HomePage,
 });
 
 const registerRoute = createRoute({
@@ -174,13 +172,13 @@ const notificationsRoute = createRoute({
 
 // Route tree
 const routeTree = rootRoute.addChildren([
-  homeRoute,
   authLayoutRoute.addChildren([loginRoute, registerRoute, forgotPasswordRoute]),
   appLayoutRoute.addChildren([
     dashboardRoute,
     uploadRoute,
     documentsRoute,
     documentRoute,
+    HomeRoute,
     settingsRoute,
     notificationsRoute,
   ]),
@@ -201,4 +199,3 @@ declare module "@tanstack/react-router" {
 }
 
 export { queryClient };
-

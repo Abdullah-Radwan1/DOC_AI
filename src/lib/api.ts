@@ -17,8 +17,12 @@ api.interceptors.response.use(
       // Clear mock user state just in case
       localStorage.removeItem('docintel-mock-user');
       
-      // We only want to redirect if we aren't already on the login or register pages
+      // We only want to redirect if we aren't already on the login, register, or home page
+      // And we don't want to redirect if the failing request is /auth/me itself (as that just means not logged in)
+      const isAuthMeRequest = error.config?.url?.includes('/auth/me');
       if (
+        !isAuthMeRequest &&
+        window.location.pathname !== '/' &&
         !window.location.pathname.includes('/login') &&
         !window.location.pathname.includes('/register')
       ) {
