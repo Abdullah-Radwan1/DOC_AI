@@ -53,7 +53,7 @@ export function UploadPage() {
   const navigate = useNavigate();
   const uploadMutation = useUploadDocument();
   const createQueryMutation = useCreateComplianceQuery();
-  
+
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [status, setStatus] = useState<
@@ -99,7 +99,7 @@ export function UploadPage() {
         });
         return;
       }
-      
+
       if (droppedFiles.length > 1) {
         toast.error("Multiple files detected", {
           description: "Please upload one document at a time.",
@@ -152,7 +152,6 @@ export function UploadPage() {
     try {
       // 1. Upload Document
       const documentResult = await uploadMutation.mutateAsync({
-        organizationId: user?.organization_id || null,
         userId: user?.id || null,
         file: values.file,
       });
@@ -172,16 +171,16 @@ export function UploadPage() {
 
       setUploadedDocumentId(documentResult.id);
       setStatus("complete");
-      
+
       toast.success("Document uploaded successfully", {
-        description: values.prompt 
+        description: values.prompt
           ? "Your document and compliance query are being processed."
           : "Your document is now being analyzed.",
         action: {
           label: "View Analysis",
           onClick: () =>
             navigate({
-              to: "/documents/$documentId",
+              to: "/dashboard/documents/$documentId",
               params: { documentId: documentResult.id },
             }),
         },
@@ -257,7 +256,8 @@ export function UploadPage() {
             <CardHeader>
               <CardTitle>Document Details</CardTitle>
               <CardDescription>
-                Provide the document you want to analyze and any specific questions you have.
+                Provide the document you want to analyze and any specific
+                questions you have.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -361,7 +361,8 @@ export function UploadPage() {
                                   {selectedFile.name}
                                 </p>
                                 <span className="text-xs text-muted-foreground">
-                                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                                  {(selectedFile.size / 1024 / 1024).toFixed(2)}{" "}
+                                  MB
                                 </span>
                               </div>
 
@@ -374,8 +375,10 @@ export function UploadPage() {
                                   <div className="flex items-center justify-between">
                                     <span className="text-xs text-muted-foreground">
                                       {status === "uploading" && "Uploading..."}
-                                      {status === "analyzing" && "Initiating analysis..."}
-                                      {status === "complete" && "Upload complete"}
+                                      {status === "analyzing" &&
+                                        "Initiating analysis..."}
+                                      {status === "complete" &&
+                                        "Upload complete"}
                                     </span>
                                     <span className="text-xs text-muted-foreground">
                                       {uploadProgress}%
@@ -394,7 +397,7 @@ export function UploadPage() {
                             {status === "complete" && uploadedDocumentId && (
                               <Button variant="ghost" size="sm" asChild>
                                 <Link
-                                  to="/documents/$documentId"
+                                  to="/dashboard/documents/$documentId"
                                   params={{ documentId: uploadedDocumentId }}
                                 >
                                   View Analysis
@@ -403,23 +406,26 @@ export function UploadPage() {
                               </Button>
                             )}
 
-                            {status !== "uploading" && status !== "analyzing" && status !== "complete" && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={removeFile}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            )}
-                            
-                            {(status === "uploading" || status === "analyzing") && (
+                            {status !== "uploading" &&
+                              status !== "analyzing" &&
+                              status !== "complete" && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={removeFile}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              )}
+
+                            {(status === "uploading" ||
+                              status === "analyzing") && (
                               <Loader2 className="h-5 w-5 animate-spin text-info" />
                             )}
                           </div>
-                          
+
                           {/* If completed, show button to upload another */}
                           {status === "complete" && (
                             <Button
@@ -474,8 +480,8 @@ export function UploadPage() {
           {/* Submit Button */}
           {selectedFile && status === "idle" && (
             <div className="flex justify-end">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 size="lg"
                 disabled={!selectedFile || status !== "idle"}
               >

@@ -28,7 +28,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const user = await endpoints.getCurrentUser();
       return { user };
     },
-    retry: false, // Don't retry on 401 - just means not logged in
+    retry: 2, // Retry 2 times
+    retryDelay: (failureCount) => {
+      // Wait 2 seconds between retries
+      return 2000 * failureCount;
+    },
     staleTime: 1000 * 60 * 5, // Cache session for 5 minutes
   });
 
@@ -90,7 +94,6 @@ export function getRolePermissions(role: UserRole) {
   const perms = {
     admin: {
       canManageUsers: true,
-      canManageOrganization: true,
       canDeleteDocuments: true,
       canViewAllDocuments: true,
       canEditDocuments: true,
@@ -99,7 +102,6 @@ export function getRolePermissions(role: UserRole) {
     },
     compliance_manager: {
       canManageUsers: false,
-      canManageOrganization: true,
       canDeleteDocuments: true,
       canViewAllDocuments: true,
       canEditDocuments: true,
@@ -108,7 +110,6 @@ export function getRolePermissions(role: UserRole) {
     },
     auditor: {
       canManageUsers: false,
-      canManageOrganization: false,
       canDeleteDocuments: false,
       canViewAllDocuments: true,
       canEditDocuments: false,
@@ -117,7 +118,6 @@ export function getRolePermissions(role: UserRole) {
     },
     viewer: {
       canManageUsers: false,
-      canManageOrganization: false,
       canDeleteDocuments: false,
       canViewAllDocuments: true,
       canEditDocuments: false,

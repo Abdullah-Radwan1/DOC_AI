@@ -7,8 +7,6 @@ export interface User {
   email: string;
   full_name: string | null;
   role: UserRole;
-  organization_id: string | null;
-  organization_name?: string;
 }
 
 export interface Document {
@@ -17,7 +15,6 @@ export interface Document {
   file_size: number | null;
   status: "uploaded" | "extracting" | "chunking" | "ready" | "failed" | string;
   created_at: string;
-  organization_id: string | null;
   uploaded_by: string | null;
   risk_level?: string | null;
   compliance_score?: number | null;
@@ -49,7 +46,6 @@ export interface DocumentAnalysis {
 
 export interface ActivityLogItem {
   id: string;
-  organization_id: string;
   user_id: string | null;
   action: string;
   entity_type: string | null;

@@ -308,7 +308,7 @@ export function SettingsPage() {
                   <div>
                     <CardTitle>Enterprise Features</CardTitle>
                     <CardDescription>
-                      Advanced capabilities for larger organizations
+                      Advanced capabilities for larger teams
                     </CardDescription>
                   </div>
                 </div>
@@ -319,8 +319,7 @@ export function SettingsPage() {
                     {
                       icon: Users,
                       title: "Team Management",
-                      description:
-                        "Collaborate across your entire organization",
+                      description: "Collaborate across your entire team",
                     },
                     {
                       icon: Key,
@@ -379,7 +378,7 @@ export function SettingsPage() {
                     <Input
                       id="email"
                       type="email"
-                      defaultValue={user?.email || "demo@docintel.com"}
+                      defaultValue={user?.email || "demo@DOCKY.com"}
                       disabled
                     />
                   </div>
@@ -393,16 +392,6 @@ export function SettingsPage() {
                         user?.role
                           ?.replace("_", " ")
                           .replace(/\b\w/g, (l) => l.toUpperCase()) || "Admin"
-                      }
-                      disabled
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="organization">Organization</Label>
-                    <Input
-                      id="organization"
-                      defaultValue={
-                        user?.organization_name || "Acme Corporation"
                       }
                       disabled
                     />

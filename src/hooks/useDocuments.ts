@@ -1,20 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as endpoints from "@/lib/endpoints";
-import type { Document, DocumentAnalysis, ActivityLogItem } from "@/lib/schemas";
+import type { ActivityLogItem } from "@/lib/schemas";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-// mapping is handled in the endpoints layer
-
-// ─── Hooks ────────────────────────────────────────────────────────────────────
-
-export function useDocuments(organizationId: string | null) {
+export function useDocuments() {
   return useQuery({
-    queryKey: ["documents", organizationId],
+    queryKey: ["documents"],
     queryFn: async () => {
-      if (!organizationId) return [];
-      return endpoints.getDocumentsByOrganization(organizationId);
+      return endpoints.getDocuments();
     },
-    enabled: !!organizationId,
   });
 }
 
@@ -39,27 +32,23 @@ export function useDocumentAnalysis(_documentId: string) {
   });
 }
 
-export function useActivityLog(organizationId: string | null, _limit = 10) {
+export function useActivityLog(_limit = 10) {
   return useQuery({
-    queryKey: ["activity", organizationId],
+    queryKey: ["activity"],
     queryFn: async (): Promise<ActivityLogItem[]> => [],
-    enabled: !!organizationId,
   });
 }
 
-export function useDashboardStats(organizationId: string | null) {
+export function useDashboardStats() {
   return useQuery({
-    queryKey: ["dashboard-stats", organizationId],
+    queryKey: ["dashboard-stats"],
     queryFn: async () => {
-      if (!organizationId) return null;
-
       try {
-        return endpoints.getDashboardStats(organizationId);
+        return endpoints.getDashboardStats();
       } catch {
         return null;
       }
     },
-    enabled: !!organizationId,
   });
 }
 
@@ -68,23 +57,19 @@ export function useUploadDocument() {
 
   return useMutation({
     mutationFn: async ({
-      organizationId,
       userId,
       file,
+      query: _query,
     }: {
-      organizationId?: string | null;
       userId?: string | null;
       file: File;
+      query?: string;
     }) => {
-      return endpoints.uploadDocument({ organizationId, userId, file });
+      return endpoints.uploadDocument({ userId, file });
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["documents", variables.organizationId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["dashboard-stats", variables.organizationId],
-      });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
     },
   });
 }
@@ -93,21 +78,12 @@ export function useDeleteDocument() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      documentId,
-    }: {
-      documentId: string;
-      organizationId?: string | null;
-    }) => {
+    mutationFn: async ({ documentId }: { documentId: string }) => {
       await endpoints.deleteDocument(documentId);
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["documents", variables.organizationId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["dashboard-stats", variables.organizationId],
-      });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
     },
   });
 }

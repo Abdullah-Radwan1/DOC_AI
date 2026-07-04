@@ -15,22 +15,10 @@ export const UserSchema = z.object({
   full_name: z.string().nullable(),
   avatar_url: z.string().nullable().optional(),
   role: UserRoleSchema,
-  organization_id: z.string().uuid().nullable(),
-  created_at: z.string(),
-  updated_at: z.string(),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
 });
 export type User = z.infer<typeof UserSchema>;
-
-export const OrganizationSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  slug: z.string(),
-  plan: z.enum(["free", "growth", "enterprise"]),
-  documents_limit: z.number(),
-  created_at: z.string(),
-  updated_at: z.string(),
-});
-export type Organization = z.infer<typeof OrganizationSchema>;
 
 export const DocumentSchema = z.object({
   id: z.string().uuid(),
@@ -38,7 +26,6 @@ export const DocumentSchema = z.object({
   file_size: z.number().nullable(),
   status: z.string(),
   created_at: z.string(),
-  organization_id: z.string().nullable(),
   uploaded_by: z.string().nullable(),
   risk_level: z.string().nullable().optional(),
   compliance_score: z.number().nullable().optional(),
@@ -74,7 +61,6 @@ export type ComplianceQuery = z.infer<typeof ComplianceQuerySchema>;
 
 export const ActivityLogItemSchema = z.object({
   id: z.string().uuid(),
-  organization_id: z.string(),
   user_id: z.string().nullable(),
   action: z.string(),
   entity_type: z.string().nullable(),

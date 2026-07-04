@@ -1,7 +1,10 @@
 import { useParams, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useDocument, useDocumentAnalysis } from "@/hooks/useDocuments";
-import { useComplianceQueries, useCreateComplianceQuery } from "@/hooks/useCompliance";
+import {
+  useComplianceQueries,
+  useCreateComplianceQuery,
+} from "@/hooks/useCompliance";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import {
@@ -84,11 +87,12 @@ const severityColors = {
 export function DocumentPage() {
   const { documentId } = useParams({ from: "/app/documents/$documentId" });
   const { data: document, isLoading: docLoading } = useDocument(documentId);
-  const { data: analysis, isLoading: analysisLoading } =
+  const { data: analysis = {} as any, isLoading: analysisLoading } =
     useDocumentAnalysis(documentId);
   const { user } = useAuth();
-  
-  const { data: queries, isLoading: queriesLoading } = useComplianceQueries(documentId);
+
+  const { data: queries, isLoading: queriesLoading } =
+    useComplianceQueries(documentId);
   const createQueryMutation = useCreateComplianceQuery();
   const [newQuery, setNewQuery] = useState("");
 
@@ -96,7 +100,7 @@ export function DocumentPage() {
 
   const handleAskQuery = async () => {
     if (!newQuery.trim() || !user) return;
-    
+
     await createQueryMutation.mutateAsync({
       queryText: newQuery,
       userId: user.id,
@@ -971,7 +975,10 @@ export function DocumentPage() {
                   }
                 }}
               />
-              <Button onClick={handleAskQuery} disabled={createQueryMutation.isPending || !newQuery.trim()}>
+              <Button
+                onClick={handleAskQuery}
+                disabled={createQueryMutation.isPending || !newQuery.trim()}
+              >
                 {createQueryMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
@@ -985,7 +992,10 @@ export function DocumentPage() {
 
             <div className="space-y-4 mt-6">
               {queries?.map((query) => (
-                <div key={query.id} className="p-4 rounded-lg border bg-muted/20">
+                <div
+                  key={query.id}
+                  className="p-4 rounded-lg border bg-muted/20"
+                >
                   <p className="font-medium">Q: {query.queryText}</p>
                   <div className="mt-2 text-sm text-muted-foreground">
                     {query.status === "completed" && query.response ? (

@@ -11,7 +11,6 @@ import {
   ColumnFiltersState,
   getFilteredRowModel,
 } from "@tanstack/react-table";
-import { useAuth } from "@/hooks/useAuth";
 import { useDocuments, useDeleteDocument } from "@/hooks/useDocuments";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -162,10 +161,7 @@ const riskConfig = {
 };
 
 export function DocumentsPage() {
-  const { user } = useAuth();
-  const { data: documents, isLoading } = useDocuments(
-    user?.organization_id || "mock-org-id",
-  );
+  const { data: documents, isLoading } = useDocuments();
   const deleteMutation = useDeleteDocument();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -327,10 +323,7 @@ export function DocumentsPage() {
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
                 onClick={() =>
-                  deleteMutation.mutate({
-                    documentId: row.original.id,
-                    organizationId: user?.organization_id || "mock-org-id",
-                  })
+                  deleteMutation.mutate({ documentId: row.original.id })
                 }
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -341,7 +334,7 @@ export function DocumentsPage() {
         ),
       },
     ],
-    [deleteMutation, user?.organization_id],
+    [deleteMutation],
   );
 
   const table = useReactTable({

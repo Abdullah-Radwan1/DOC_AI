@@ -89,7 +89,7 @@ export function RegisterPage() {
         <div className="w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center">
           <FileSearch className="w-6 h-6 text-foreground" />
         </div>
-        <span className="text-xl font-semibold text-foreground">DocIntel</span>
+        <span className="text-xl font-semibold text-foreground">DOCKY</span>
       </div>
 
       {/* Header */}

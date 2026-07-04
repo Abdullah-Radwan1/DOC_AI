@@ -50,24 +50,6 @@ const rootRoute = createRootRoute({
 });
 
 // Auth helpers
-const requireAuth = async () => {
-  try {
-    const data = queryClient.getQueryData(["auth", "me"]);
-    if (!data) {
-      // Try to fetch it if not in cache
-      await queryClient.fetchQuery({
-        queryKey: ["auth", "me"],
-        queryFn: async () => {
-          const res = await api.get("/auth/me");
-          return res.data;
-        },
-      });
-    }
-  } catch (error) {
-    throw redirect({ to: "/login" });
-  }
-};
-
 const requireNoAuth = async () => {
   let isAuthenticated = false;
   try {
@@ -92,7 +74,33 @@ const requireNoAuth = async () => {
     throw redirect({ to: "/dashboard" });
   }
 };
+const requireAuth = async () => {
+  let isAuthenticated = false;
+  try {
+    // 1. Check if user data is already cached
+    const data = queryClient.getQueryData(["auth", "me"]);
+    if (data) {
+      isAuthenticated = true;
+    } else {
+      // 2. Fetch if not cached (handles hard refreshes)
+      await queryClient.fetchQuery({
+        queryKey: ["auth", "me"],
+        queryFn: async () => {
+          const res = await api.get("/auth/me");
+          return res.data;
+        },
+      });
+      isAuthenticated = true;
+    }
+  } catch (error) {
+    isAuthenticated = false;
+  }
 
+  // 3. Kick out unauthenticated users
+  if (!isAuthenticated) {
+    throw redirect({ to: "/login" });
+  }
+};
 // Public Layout Route
 const authLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -138,35 +146,36 @@ const dashboardRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: "/dashboard",
   component: DashboardPage,
+  beforeLoad: () => requireAuth,
 });
 
 const uploadRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
-  path: "/upload",
+  path: "/dashboard/upload",
   component: UploadPage,
 });
 
 const documentsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
-  path: "/documents",
+  path: "/dashboard/documents",
   component: DocumentsPage,
 });
 
 const documentRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
-  path: "/documents/$documentId",
+  path: "/dashboard/documents/$documentId",
   component: DocumentPage,
 });
 
 const settingsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
-  path: "/settings",
+  path: "/dashboard/settings",
   component: SettingsPage,
 });
 
 const notificationsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
-  path: "/notifications",
+  path: "/dashboard/notifications",
   component: NotificationsPage,
 });
 

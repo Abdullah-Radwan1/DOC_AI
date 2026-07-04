@@ -209,22 +209,7 @@ export function HomePage() {
     }
 
     try {
-      /**
-       * IMPORTANT:
-       * Your backend flow should accept BOTH:
-       * - file
-       * - compliancePrompt
-       *
-       * Example payload:
-       * {
-       *   organizationId: user?.organization_id ?? null,
-       *   userId: user?.id ?? null,
-       *   file,
-       *   query: compliancePrompt
-       * }
-       */
       const result = await uploadMutation.mutateAsync({
-        organizationId: user?.organization_id || null,
         userId: user?.id || null,
         file,
         query: compliancePrompt,
@@ -250,7 +235,7 @@ export function HomePage() {
           label: "View analysis",
           onClick: () =>
             navigate({
-              to: "/documents/$documentId",
+              to: "/dashboard/documents/$documentId",
               params: { documentId: result.id },
             }),
         },
@@ -337,7 +322,7 @@ export function HomePage() {
       </section>
 
       {/* Main analysis section */}
-      <section className="grid gap-8 grid-cols-3  items-start">
+      <section className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3  items-start">
         {/* Left: prompt + upload */}
         <motion.div
           initial={{ opacity: 0, x: -18 }}
@@ -454,7 +439,7 @@ export function HomePage() {
                             const first = completedFiles[0];
                             if (first?.documentId) {
                               navigate({
-                                to: "/documents/$documentId",
+                                to: "/dashboard/documents/$documentId",
                                 params: { documentId: first.documentId },
                               });
                             }
@@ -571,7 +556,7 @@ export function HomePage() {
                             uploadFile.documentId && (
                               <Button variant="outline" size="sm" asChild>
                                 <Link
-                                  to="/documents/$documentId"
+                                  to="/dashboard/documents/$documentId"
                                   params={{
                                     documentId: uploadFile.documentId,
                                   }}
@@ -598,7 +583,7 @@ export function HomePage() {
 
         {/* Right column */}
         {/* Dropzone */}
-        <div className="space-y-3 grid-cols-1">
+        <div className="space-y-3 col-span-3  lg:col-span-1">
           <label className="text-sm font-semibold">Document PDF</label>
 
           <div
@@ -724,7 +709,7 @@ export function HomePage() {
             Need history, team workspaces, and audit visibility?
           </h2>
           <p className="text-sm leading-7 text-muted-foreground sm:text-base">
-            Create an account to save analyses, manage organization documents,
+            Create an account to save analyses, manage uploaded documents,
             review previous compliance runs, and build a structured internal
             review workflow.
           </p>

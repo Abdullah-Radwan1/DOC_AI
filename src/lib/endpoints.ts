@@ -3,13 +3,11 @@ import {
   DocumentSchema,
   DashboardStatsSchema,
   UserSchema,
-  OrganizationSchema,
   ComplianceQuerySchema,
   type Document,
   type ActivityLogItem,
   type DashboardStats,
   type User,
-  type Organization,
   type ComplianceQuery,
 } from "@/lib/schemas";
 import { z } from "zod";
@@ -22,7 +20,6 @@ function mapDocument(raw: any): Document {
     file_size: raw.fileSize ?? raw.file_size ?? null,
     status: raw.status,
     created_at: raw.createdAt ?? raw.created_at,
-    organization_id: raw.organizationId ?? raw.organization_id ?? null,
     uploaded_by: raw.uploadedBy ?? raw.uploaded_by ?? null,
     risk_level: raw.riskLevel ?? raw.risk_level ?? null,
     compliance_score: raw.complianceScore ?? raw.compliance_score ?? null,
@@ -31,10 +28,8 @@ function mapDocument(raw: any): Document {
   return DocumentSchema.parse(doc);
 }
 
-export async function getDocumentsByOrganization(
-  organizationId: string,
-): Promise<Document[]> {
-  const { data } = await api.get(`/documents/organization/${organizationId}`);
+export async function getDocuments(): Promise<Document[]> {
+  const { data } = await api.get("/documents");
   return (Array.isArray(data) ? data : []).map((d: any) => mapDocument(d));
 }
 
@@ -44,17 +39,14 @@ export async function getDocumentById(documentId: string): Promise<Document> {
 }
 
 export async function uploadDocument({
-  organizationId,
   userId,
   file,
 }: {
-  organizationId?: string | null;
   userId?: string | null;
   file: File;
 }): Promise<Document> {
   const formData = new FormData();
   formData.append("file", file);
-  if (organizationId) formData.append("organizationId", organizationId);
   if (userId) formData.append("uploadedBy", userId);
 
   const { data } = await api.post("/documents/upload", formData, {
@@ -68,20 +60,18 @@ export async function deleteDocument(documentId: string): Promise<void> {
   await api.delete(`/documents/${documentId}`);
 }
 
-export async function getDashboardStats(
-  organizationId: string,
-): Promise<DashboardStats | null> {
-  const { data } = await api.get(`/documents/organization/${organizationId}`);
+export async function getDashboardStats(): Promise<DashboardStats | null> {
+  const { data } = await api.get("/documents");
   const docs = (Array.isArray(data) ? data : []).map((d: any) =>
     mapDocument(d),
   );
   const totalDocs = docs.length;
   if (totalDocs === 0) {
     return DashboardStatsSchema.parse({
-      totalDocuments: 12,
-      analyzedDocuments: 10,
-      averageComplianceScore: 78,
-      highRiskDocuments: 3,
+      totalDocuments: 0,
+      analyzedDocuments: 0,
+      averageComplianceScore: 0,
+      highRiskDocuments: 0,
       documentsLimit: 3,
       monthlyIngestion: [],
       complianceTrend: [],
@@ -99,11 +89,7 @@ export async function getDashboardStats(
   });
 }
 
-export async function getActivityLog(
-  _organizationId: string,
-  _limit = 10,
-): Promise<ActivityLogItem[]> {
-  // Backend endpoint not implemented for logs in the frontend; return empty for now.
+export async function getActivityLog(_limit = 10): Promise<ActivityLogItem[]> {
   return [];
 }
 
@@ -172,27 +158,8 @@ export async function getComplianceQueriesByDocument(
   return z.array(ComplianceQuerySchema).parse(data);
 }
 
-// Organizations
-export async function getOrganizationById(id: string): Promise<Organization> {
-  const { data } = await api.get(`/organizations/${id}`);
-  return OrganizationSchema.parse(data);
-}
-
-export async function getOrganizationBySlug(
-  slug: string,
-): Promise<Organization> {
-  const { data } = await api.get(`/organizations/slug/${slug}`);
-  return OrganizationSchema.parse(data);
-}
-
-export async function getAllOrganizations(): Promise<Organization[]> {
-  const { data } = await api.get(`/organizations`);
-  return z.array(OrganizationSchema).parse(data);
-}
-
 // Users
 export async function getUserById(id: string): Promise<User> {
   const { data } = await api.get(`/users/${id}`);
   return UserSchema.parse(data);
 }
-

@@ -69,7 +69,7 @@ export function ForgotPasswordPage() {
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand to-accent flex items-center justify-center">
           <FileSearch className="w-6 h-6 text-primary-foreground" />
         </div>
-        <span className="text-xl font-bold">DocIntel</span>
+        <span className="text-xl font-bold">DOCKY</span>
       </div>
 
       {/* Header */}

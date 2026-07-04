@@ -1,8 +1,7 @@
-import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { motion } from "framer-motion";
+import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
-import { useDashboardStats, useUploadDocument } from "@/hooks/useDocuments";
+import { useDashboardStats } from "@/hooks/useDocuments";
 import {
   Card,
   CardContent,
@@ -13,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { toast } from "sonner";
 import {
   AreaChart,
   Area,
@@ -37,14 +35,6 @@ import {
   Activity,
   Calendar,
   Crown,
-  UploadCloud,
-  CheckCircle2,
-  AlertCircle,
-  X,
-  Loader2,
-  Sparkles,
-  Zap,
-  Lock,
 } from "lucide-react";
 
 const containerVariants = {
@@ -62,80 +52,9 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
-const recentActivity = [
-  {
-    id: 1,
-    action: "Document analyzed",
-    document: "Contract_Acme_2024.pdf",
-    time: "2 min ago",
-    type: "success",
-  },
-  {
-    id: 2,
-    action: "High risk detected",
-    document: "NDA_TechStart.pdf",
-    time: "15 min ago",
-    type: "warning",
-  },
-  {
-    id: 3,
-    action: "Document uploaded",
-    document: "Service_Agreement.docx",
-    time: "1 hour ago",
-    type: "info",
-  },
-  {
-    id: 4,
-    action: "Compliance check passed",
-    document: "Privacy_Policy.pdf",
-    time: "2 hours ago",
-    type: "success",
-  },
-  {
-    id: 5,
-    action: "Report exported",
-    document: "Q4_Financials.pdf",
-    time: "3 hours ago",
-    type: "info",
-  },
-];
-
-const upcomingDeadlines = [
-  {
-    id: 1,
-    title: "Contract renewal: Acme Corp",
-    date: "2024-02-15",
-    daysLeft: 12,
-    type: "renewal",
-  },
-  {
-    id: 2,
-    title: "Compliance audit due",
-    date: "2024-02-10",
-    daysLeft: 7,
-    type: "audit",
-  },
-  {
-    id: 3,
-    title: "NDA expiration",
-    date: "2024-02-20",
-    daysLeft: 17,
-    type: "expiration",
-  },
-];
-
-interface UploadFile {
-  file: File;
-  progress: number;
-  status: "pending" | "uploading" | "analyzing" | "complete" | "error";
-  documentId?: string;
-}
-
 export function DashboardPage() {
   const { user } = useAuth();
-  const { data: stats, isLoading } = useDashboardStats(
-    user?.organization_id || "mock-org-id",
-  );
+  const { data: stats, isLoading } = useDashboardStats();
 
   if (isLoading) {
     return (
@@ -151,12 +70,71 @@ export function DashboardPage() {
   const highRisk = stats?.highRiskDocuments || 3;
   const docsLimit = stats?.documentsLimit || 3;
   const docsUsed = 1;
-
   const scoreData = [
     {
       name: "Score",
       value: avgScore,
       fill: avgScore >= 80 ? "#22c55e" : avgScore >= 60 ? "#f59e0b" : "#ef4444",
+    },
+  ];
+  const recentActivity = [
+    {
+      id: 1,
+      action: "Document analyzed",
+      document: "Contract_Acme_2024.pdf",
+      time: "2 min ago",
+      type: "success",
+    },
+    {
+      id: 2,
+      action: "High risk detected",
+      document: "NDA_TechStart.pdf",
+      time: "15 min ago",
+      type: "warning",
+    },
+    {
+      id: 3,
+      action: "Document uploaded",
+      document: "Service_Agreement.docx",
+      time: "1 hour ago",
+      type: "info",
+    },
+    {
+      id: 4,
+      action: "Compliance check passed",
+      document: "Privacy_Policy.pdf",
+      time: "2 hours ago",
+      type: "success",
+    },
+    {
+      id: 5,
+      action: "Report exported",
+      document: "Q4_Financials.pdf",
+      time: "3 hours ago",
+      type: "info",
+    },
+  ];
+  const upcomingDeadlines = [
+    {
+      id: 1,
+      title: "Contract renewal: Acme Corp",
+      date: "2024-02-15",
+      daysLeft: 12,
+      type: "renewal",
+    },
+    {
+      id: 2,
+      title: "Compliance audit due",
+      date: "2024-02-10",
+      daysLeft: 7,
+      type: "audit",
+    },
+    {
+      id: 3,
+      title: "NDA expiration",
+      date: "2024-02-20",
+      daysLeft: 17,
+      type: "expiration",
     },
   ];
 
@@ -181,7 +159,7 @@ export function DashboardPage() {
           </p>
         </div>
         <Button asChild>
-          <Link to="/upload">
+          <Link to="/dashboard/upload">
             <Upload className="mr-2 h-4 w-4" />
             Upload Document
           </Link>
@@ -211,7 +189,7 @@ export function DashboardPage() {
                 asChild
                 className="w-full md:w-auto bg-gradient-to-r from-brand to-accent hover:from-brand-dark hover:to-accent"
               >
-                <Link to="/settings">
+                <Link to="/dashboard/settings">
                   Upgrade Now
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -535,4 +513,3 @@ export function DashboardPage() {
     </motion.div>
   );
 }
-
