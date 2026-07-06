@@ -5,7 +5,7 @@ import {
   Outlet,
   redirect,
 } from "@tanstack/react-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 
 // Layouts
@@ -43,10 +43,10 @@ const queryClient = new QueryClient({
 // Root Route
 const rootRoute = createRootRoute({
   component: () => (
-    <QueryClientProvider client={queryClient}>
+    <>
       <Outlet />
       <Toaster position="top-right" richColors />
-    </QueryClientProvider>
+    </>
   ),
 });
 
@@ -54,7 +54,10 @@ const rootRoute = createRootRoute({
 const requireNoAuth = async () => {
   let isAuthenticated = false;
   try {
-    const cached = queryClient.getQueryData<{ user: User | null }>(["auth", "me"]);
+    const cached = queryClient.getQueryData<{ user: User | null }>([
+      "auth",
+      "me",
+    ]);
     if (cached?.user) {
       isAuthenticated = true;
     } else {
@@ -79,7 +82,10 @@ const requireAuth = async () => {
   let isAuthenticated = false;
   try {
     // 1. Check if user data is already cached
-    const cached = queryClient.getQueryData<{ user: User | null }>(["auth", "me"]);
+    const cached = queryClient.getQueryData<{ user: User | null }>([
+      "auth",
+      "me",
+    ]);
     if (cached?.user) {
       isAuthenticated = true;
     } else {

@@ -3,7 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useUploadDocument } from "@/hooks/useDocuments";
-import { useCreateComplianceQuery } from "@/hooks/useCompliance";
+import * as endpoints from "@/lib/endpoints";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -52,7 +52,6 @@ export function UploadPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const uploadMutation = useUploadDocument();
-  const createQueryMutation = useCreateComplianceQuery();
 
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -149,47 +148,78 @@ export function UploadPage() {
       });
     }, 200);
 
+    let documentResult;
     try {
       // 1. Upload Document
-      const documentResult = await uploadMutation.mutateAsync({
+      documentResult = await uploadMutation.mutateAsync({
         userId: user?.id || null,
         file: values.file,
       });
-
+    } catch (error: any) {
       clearInterval(progressInterval);
-      setUploadProgress(100);
-      setStatus("analyzing");
+      setStatus("error");
+      toast.error("Upload failed", {
+        description: error?.response?.data?.message || "There was an error uploading your document.",
+      });
+      return;
+    }
 
-      // 2. Optional: Create Compliance Query
-      if (values.prompt && values.prompt.trim() !== "") {
-        await createQueryMutation.mutateAsync({
+    clearInterval(progressInterval);
+    setUploadProgress(100);
+    setStatus("complete");
+    setUploadedDocumentId(documentResult.id);
+
+    // 2. Optional: Create Compliance Query
+    if (values.prompt && values.prompt.trim() !== "") {
+      try {
+        let guestId = localStorage.getItem("docky_guest_id");
+        if (!guestId && !user?.id) {
+          guestId = crypto.randomUUID();
+          localStorage.setItem("docky_guest_id", guestId);
+        }
+
+        await endpoints.analyzeDocument({
           queryText: values.prompt,
-          userId: user?.id || "",
+          userId: user?.id,
+          guestId: guestId || undefined,
           documentId: documentResult.id,
         });
+
+        toast.success("Document uploaded successfully", {
+          description: "Your document and compliance query have been processed.",
+          action: {
+            label: "View Analysis",
+            onClick: () =>
+              navigate({
+                to: "/dashboard/documents/$documentId",
+                params: { documentId: documentResult.id },
+              }),
+          },
+        });
+      } catch (error: any) {
+        toast.warning("Upload successful, but analysis failed", {
+          description: error?.response?.data?.message || "We uploaded your document but couldn't run the compliance check. You can try again on the document page.",
+          action: {
+            label: "View Document",
+            onClick: () =>
+              navigate({
+                to: "/dashboard/documents/$documentId",
+                params: { documentId: documentResult.id },
+              }),
+          },
+        });
       }
-
-      setUploadedDocumentId(documentResult.id);
-      setStatus("complete");
-
+    } else {
       toast.success("Document uploaded successfully", {
-        description: values.prompt
-          ? "Your document and compliance query are being processed."
-          : "Your document is now being analyzed.",
+        description: "Your document has been uploaded.",
         action: {
-          label: "View Analysis",
+          label: "View Document",
           onClick: () =>
             navigate({
               to: "/dashboard/documents/$documentId",
               params: { documentId: documentResult.id },
             }),
         },
-      });
-    } catch (error) {
-      clearInterval(progressInterval);
-      setStatus("error");
-      toast.error("Upload failed", {
-        description: "There was an error processing your request.",
       });
     }
   };

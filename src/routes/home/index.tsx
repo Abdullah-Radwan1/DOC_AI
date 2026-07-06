@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useUploadDocument } from "@/hooks/useDocuments";
+import * as endpoints from "@/lib/endpoints";
 import {
   Card,
   CardContent,
@@ -194,69 +195,111 @@ export function HomePage() {
       );
     }
 
-    setFiles((prev) =>
-      prev.map((f) =>
-        f.file === file ? { ...f, status: "analyzing", progress: 0 } : f,
-      ),
-    );
-
-    // Fake analysis progress
-    for (let i = 0; i <= 100; i += 10) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      setFiles((prev) =>
-        prev.map((f) => (f.file === file ? { ...f, progress: i } : f)),
-      );
-    }
-
     try {
+      // 1. Upload the document
       const result = await uploadMutation.mutateAsync({
         userId: user?.id || null,
         file,
-        query: compliancePrompt,
       });
 
+      // Update progress state for the file to show analysis is starting
       setFiles((prev) =>
         prev.map((f) =>
-          f.file === file
-            ? {
-                ...f,
-                status: "complete",
-                progress: 100,
-                documentId: result.id,
-              }
-            : f,
+          f.file === file ? { ...f, status: "analyzing", documentId: result.id } : f,
         ),
       );
 
-      toast.success("Analysis completed", {
-        description:
-          "Your document has been checked against the compliance prompt successfully.",
-        action: {
-          label: "View analysis",
-          onClick: () =>
-            navigate({
-              to: "/dashboard/documents/$documentId",
-              params: { documentId: result.id },
-            }),
-        },
-      });
-    } catch (error) {
+      // 2. Trigger the AI analysis pipeline
+      try {
+        let guestId = localStorage.getItem("docky_guest_id");
+        if (!guestId && !user?.id) {
+          guestId = crypto.randomUUID();
+          localStorage.setItem("docky_guest_id", guestId);
+        }
+
+        let analysisProgress = 0;
+        const progressInterval = setInterval(() => {
+          analysisProgress += 5;
+          if (analysisProgress > 95) analysisProgress = 95;
+          setFiles((prev) =>
+            prev.map((f) => (f.file === file ? { ...f, progress: analysisProgress } : f)),
+          );
+        }, 500);
+
+        await endpoints.analyzeDocument({
+          documentId: result.id,
+          userId: user?.id,
+          guestId: guestId || undefined,
+          queryText: compliancePrompt,
+        });
+
+        clearInterval(progressInterval);
+
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.file === file
+              ? {
+                  ...f,
+                  status: "complete",
+                  progress: 100,
+                  documentId: result.id,
+                }
+              : f,
+          ),
+        );
+
+        toast.success("Analysis completed", {
+          description: "Your document has been checked against the compliance prompt successfully.",
+          action: {
+            label: "View analysis",
+            onClick: () =>
+              navigate({
+                to: "/dashboard/documents/$documentId",
+                params: { documentId: result.id },
+              }),
+          },
+        });
+      } catch (analysisError: any) {
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.file === file
+              ? {
+                  ...f,
+                  status: "error",
+                  errorMessage: analysisError?.response?.data?.message || "Analysis failed.",
+                  documentId: result.id,
+                }
+              : f,
+          ),
+        );
+
+        toast.warning("Upload successful, but analysis failed", {
+          description: analysisError?.response?.data?.message || "We uploaded your document but couldn't run the compliance check.",
+          action: {
+            label: "View Document",
+            onClick: () =>
+              navigate({
+                to: "/dashboard/documents/$documentId",
+                params: { documentId: result.id },
+              }),
+          },
+        });
+      }
+    } catch (uploadError: any) {
       setFiles((prev) =>
         prev.map((f) =>
           f.file === file
             ? {
                 ...f,
                 status: "error",
-                errorMessage:
-                  "Failed to process this document. Please try again.",
+                errorMessage: uploadError?.response?.data?.message || "Failed to upload this document. Please try again.",
               }
             : f,
         ),
       );
 
-      toast.error("Analysis failed", {
-        description:
-          "We couldn’t process this document or run the compliance analysis.",
+      toast.error("Upload failed", {
+        description: uploadError?.response?.data?.message || "We couldn't upload this document.",
       });
     }
   };

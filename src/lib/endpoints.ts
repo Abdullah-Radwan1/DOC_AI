@@ -172,6 +172,31 @@ export async function getDocumentAnalysis(
   return data;
 }
 
+export async function analyzeDocument({
+  documentId,
+  userId,
+  guestId,
+  queryText,
+}: {
+  documentId: string;
+  userId?: string;
+  guestId?: string;
+  queryText: string;
+}): Promise<any> {
+  const { data } = await api.post("/compliance/analyze", {
+    documentId,
+    userId,
+    guestId,
+    queryText,
+  });
+  return data;
+}
+
+export async function getAnalysisResult(requestId: string): Promise<any> {
+  const { data } = await api.get(`/compliance/analysis/${requestId}`);
+  return data;
+}
+
 // Compliance Queries
 export async function createComplianceQuery({
   queryText,

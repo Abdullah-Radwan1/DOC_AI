@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as endpoints from "@/lib/endpoints";
-import type { ComplianceQuery } from "@/lib/schemas";
 
 export function useComplianceQueries(documentId: string) {
   return useQuery({
@@ -12,22 +11,26 @@ export function useComplianceQueries(documentId: string) {
   });
 }
 
-export function useCreateComplianceQuery() {
+
+export function useAnalyzeDocument() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({
       queryText,
       userId,
+      guestId,
       documentId,
     }: {
       queryText: string;
-      userId: string;
-      documentId?: string;
+      userId?: string;
+      guestId?: string;
+      documentId: string;
     }) => {
-      return endpoints.createComplianceQuery({
+      return endpoints.analyzeDocument({
         queryText,
         userId,
+        guestId,
         documentId,
       });
     },
@@ -35,6 +38,9 @@ export function useCreateComplianceQuery() {
       if (variables.documentId) {
         queryClient.invalidateQueries({
           queryKey: ["compliance", "document", variables.documentId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["analysis", variables.documentId],
         });
       }
     },

@@ -129,8 +129,8 @@ export function SettingsPage() {
       setProfileError(null);
       toast.success("Profile updated successfully.");
     },
-    onError: (err: any) => {
-      const msg = err?.response?.data?.message ?? "Failed to update profile.";
+    onError: (err: unknown) => {
+      const msg = (err as Record<string, any>)?.response?.data?.message ?? "Failed to update profile.";
       setProfileError(msg);
       toast.error(msg);
     },
@@ -164,8 +164,8 @@ export function SettingsPage() {
       setPasswordError(null);
       toast.success("Password changed successfully.");
     },
-    onError: (err: any) => {
-      const msg = err?.response?.data?.message ?? "Failed to change password.";
+    onError: (err: unknown) => {
+      const msg = (err as Record<string, any>)?.response?.data?.message ?? "Failed to change password.";
       setPasswordError(msg);
       toast.error(msg);
     },
