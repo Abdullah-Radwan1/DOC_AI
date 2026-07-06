@@ -9,6 +9,16 @@ export const UserRoleSchema = z.enum([
   "viewer",
 ]);
 
+export const NotificationPreferencesSchema = z.object({
+  allow_email_notifications: z.boolean(),
+  allow_expiry_reminders: z.boolean(),
+  allow_risk_alerts: z.boolean(),
+  allow_analysis_alerts: z.boolean(),
+});
+export type NotificationPreferences = z.infer<
+  typeof NotificationPreferencesSchema
+>;
+
 export const UserSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email(),
@@ -17,6 +27,7 @@ export const UserSchema = z.object({
   role: UserRoleSchema,
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
+  notification_preferences: NotificationPreferencesSchema.optional(),
 });
 export type User = z.infer<typeof UserSchema>;
 
@@ -70,6 +81,43 @@ export const ActivityLogItemSchema = z.object({
 });
 export type ActivityLogItem = z.infer<typeof ActivityLogItemSchema>;
 
+// ─── Notifications ───────────────────────────────────────────────────────────
+
+export const NotificationTypeSchema = z.enum([
+  "expiration_warning",
+  "compliance_alert",
+  "system_alert",
+]);
+
+export const NotificationStatusSchema = z.enum(["unread", "read", "archived"]);
+
+export const NotificationSchema = z.object({
+  id: z.string().uuid(),
+  userId: z.string().uuid(),
+  title: z.string(),
+  message: z.string(),
+  type: NotificationTypeSchema,
+  status: NotificationStatusSchema,
+  deliveryChannel: z.string(),
+  documentId: z.string().uuid().nullable().optional(),
+  document: z.object({ originalFileName: z.string() }).nullable().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type AppNotification = z.infer<typeof NotificationSchema>;
+
+export const NotificationListSchema = z.object({
+  data: z.array(NotificationSchema),
+  meta: z.object({
+    totalItems: z.number(),
+    itemCount: z.number(),
+    itemsPerPage: z.number(),
+    totalPages: z.number(),
+    currentPage: z.number(),
+  }),
+});
+export type NotificationList = z.infer<typeof NotificationListSchema>;
+
 export const DocumentAnalysisSchema = z.object({
   id: z.string().uuid(),
   document_id: z.string().uuid(),
@@ -94,15 +142,100 @@ export const DocumentAnalysisSchema = z.object({
 });
 export type DocumentAnalysis = z.infer<typeof DocumentAnalysisSchema>;
 
-export const DashboardStatsSchema = z.object({
+// ─── Dashboard Summary (server-aggregated) ────────────────────────────────────
+
+export const KpisSchema = z.object({
   totalDocuments: z.number(),
-  analyzedDocuments: z.number(),
-  averageComplianceScore: z.number(),
-  highRiskDocuments: z.number(),
-  documentsLimit: z.number(),
-  monthlyIngestion: z.array(
-    z.object({ month: z.string(), documents: z.number() }),
-  ),
-  complianceTrend: z.array(z.object({ month: z.string(), score: z.number() })),
+  readyDocuments: z.number(),
+  processingDocuments: z.number(),
+  failedDocuments: z.number(),
+  totalAnalyses: z.number(),
+  completedAnalyses: z.number(),
+  pendingAnalyses: z.number(),
+  failedAnalyses: z.number(),
+  unreadNotifications: z.number(),
+  expiredDocuments: z.number(),
+  expiringSoonDocuments: z.number(),
+  complianceRate: z.number(),
 });
-export type DashboardStats = z.infer<typeof DashboardStatsSchema>;
+
+export const RecentAnalysisSchema = z.object({
+  id: z.string().uuid(),
+  documentId: z.string().uuid().nullable(),
+  documentName: z.string().nullable(),
+  requestStatus: z.enum(["pending", "processing", "completed", "failed"]),
+  verdict: z
+    .enum(["compliant", "partial", "non_compliant", "unknown"])
+    .nullable(),
+  riskLevel: z.enum(["low", "medium", "high"]).nullable(),
+  confidenceScore: z.number().nullable(),
+  createdAt: z.string(),
+});
+
+export const DocumentAttentionSchema = z.object({
+  id: z.string().uuid(),
+  fileName: z.string(),
+  dashboardStatus: z.string(),
+  riskLevel: z.enum(["low", "medium", "high"]).nullable(),
+  criticalFindings: z.number(),
+  highFindings: z.number(),
+  expirationDate: z.string().nullable(),
+});
+
+export const ExpirationSchema = z.object({
+  id: z.string().uuid(),
+  fileName: z.string(),
+  expirationDate: z.string(),
+  daysUntilExpiration: z.number(),
+});
+
+export const ActivitySchema = z.object({
+  id: z.string().uuid(),
+  action: z.string(),
+  entityType: z.string().nullable(),
+  entityId: z.string().nullable(),
+  userEmail: z.string().nullable(),
+  userFullName: z.string().nullable(),
+  metadata: z.record(z.unknown()).nullable(),
+  createdAt: z.string(),
+});
+
+export const DashboardSummarySchema = z.object({
+  generatedAt: z.string(),
+  kpis: KpisSchema,
+  complianceDistribution: z.object({
+    compliant: z.number(),
+    partial: z.number(),
+    non_compliant: z.number(),
+    unknown: z.number(),
+  }),
+  riskDistribution: z.object({
+    low: z.number(),
+    medium: z.number(),
+    high: z.number(),
+  }),
+  findingsSeverityBreakdown: z.object({
+    info: z.number(),
+    low: z.number(),
+    medium: z.number(),
+    high: z.number(),
+    critical: z.number(),
+  }),
+  documentStatusBreakdown: z.object({
+    uploaded: z.number(),
+    extracting: z.number(),
+    chunking: z.number(),
+    ready: z.number(),
+    failed: z.number(),
+  }),
+  recentAnalyses: z.array(RecentAnalysisSchema),
+  documentsRequiringAttention: z.array(DocumentAttentionSchema),
+  upcomingExpirations: z.array(ExpirationSchema),
+  recentActivity: z.array(ActivitySchema),
+});
+
+export type DashboardSummary = z.infer<typeof DashboardSummarySchema>;
+
+// Legacy alias kept for any imports that still reference DashboardStats
+export const DashboardStatsSchema = DashboardSummarySchema;
+export type DashboardStats = DashboardSummary;

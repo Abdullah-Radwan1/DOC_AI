@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -16,6 +16,10 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfilePreferences } from "@/hooks/useProfilePreferences";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { updateProfile, changePassword } from "@/lib/endpoints";
+import { toast } from "sonner";
 import {
   Crown,
   Check,
@@ -30,6 +34,8 @@ import {
   FileText,
   ExternalLink,
   Sparkles,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 
 const plans = [
@@ -94,11 +100,99 @@ const itemVariants = {
 
 export function SettingsPage() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(
     "monthly",
   );
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [analysisAlerts, setAnalysisAlerts] = useState(true);
+  const {
+    data: preferences,
+    isLoading: isPreferencesLoading,
+    savePreferences,
+    isSaving,
+  } = useProfilePreferences();
+
+  // ─── Profile form state ───────────────────────────────────────────────────
+  const [fullName, setFullName] = useState(user?.full_name || "");
+  const [profileError, setProfileError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user?.full_name) {
+      setFullName(user.full_name);
+    }
+  }, [user?.full_name]);
+
+  const profileMutation = useMutation({
+    mutationFn: (payload: { fullName: string }) => updateProfile(payload),
+    onSuccess: (updatedUser) => {
+      // Update the cached auth user
+      queryClient.setQueryData(["auth", "me"], { user: updatedUser });
+      setProfileError(null);
+      toast.success("Profile updated successfully.");
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message ?? "Failed to update profile.";
+      setProfileError(msg);
+      toast.error(msg);
+    },
+  });
+
+  const handleProfileSubmit = () => {
+    setProfileError(null);
+    if (!fullName.trim() || fullName.trim().length < 2) {
+      setProfileError("Name must be at least 2 characters.");
+      return;
+    }
+    profileMutation.mutate({ fullName: fullName.trim() });
+  };
+
+  // ─── Password form state ─────────────────────────────────────────────────
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  const passwordMutation = useMutation({
+    mutationFn: (payload: {
+      oldPassword: string;
+      newPassword: string;
+      confirmPassword: string;
+    }) => changePassword(payload),
+    onSuccess: () => {
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setPasswordError(null);
+      toast.success("Password changed successfully.");
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message ?? "Failed to change password.";
+      setPasswordError(msg);
+      toast.error(msg);
+    },
+  });
+
+  const handlePasswordSubmit = () => {
+    setPasswordError(null);
+
+    if (!currentPassword) {
+      setPasswordError("Please enter your current password.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError("New password must be at least 8 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New password and confirmation do not match.");
+      return;
+    }
+
+    passwordMutation.mutate({
+      oldPassword: currentPassword,
+      newPassword,
+      confirmPassword,
+    });
+  };
 
   return (
     <motion.div
@@ -357,6 +451,7 @@ export function SettingsPage() {
 
         {/* Profile Tab */}
         <TabsContent value="profile" className="space-y-6">
+          {/* Profile Information */}
           <motion.div variants={itemVariants}>
             <Card>
               <CardHeader>
@@ -369,7 +464,8 @@ export function SettingsPage() {
                     <Label htmlFor="fullName">Full Name</Label>
                     <Input
                       id="fullName"
-                      defaultValue={user?.full_name || "Demo User"}
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
                       placeholder="John Doe"
                     />
                   </div>
@@ -378,8 +474,9 @@ export function SettingsPage() {
                     <Input
                       id="email"
                       type="email"
-                      defaultValue={user?.email || "demo@DOCKY.com"}
+                      defaultValue={user?.email || ""}
                       disabled
+                      className="bg-muted/50"
                     />
                   </div>
                 </div>
@@ -391,22 +488,39 @@ export function SettingsPage() {
                       defaultValue={
                         user?.role
                           ?.replace("_", " ")
-                          .replace(/\b\w/g, (l) => l.toUpperCase()) || "Admin"
+                          .replace(/\b\w/g, (l) => l.toUpperCase()) || "Viewer"
                       }
                       disabled
+                      className="bg-muted/50"
                     />
                   </div>
                 </div>
+
+                {profileError && (
+                  <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-lg">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    {profileError}
+                  </div>
+                )}
               </CardContent>
               <CardFooter>
-                <Button variant="outline">
-                  <SettingsIcon className="mr-2 h-4 w-4" />
+                <Button
+                  variant="outline"
+                  onClick={handleProfileSubmit}
+                  disabled={profileMutation.isPending}
+                >
+                  {profileMutation.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <SettingsIcon className="mr-2 h-4 w-4" />
+                  )}
                   Update Profile
                 </Button>
               </CardFooter>
             </Card>
           </motion.div>
 
+          {/* Password Change */}
           <motion.div variants={itemVariants}>
             <Card>
               <CardHeader>
@@ -415,35 +529,67 @@ export function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="current">Current Password</Label>
+                  <Label htmlFor="current-password">Current Password</Label>
                   <Input
-                    id="current"
+                    id="current-password"
                     type="password"
                     placeholder="Enter current password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
                   />
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="new">New Password</Label>
+                    <Label htmlFor="new-password">New Password</Label>
                     <Input
-                      id="new"
+                      id="new-password"
                       type="password"
                       placeholder="Enter new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
                     />
+                    {newPassword.length > 0 && newPassword.length < 8 && (
+                      <p className="text-xs text-muted-foreground">
+                        Must be at least 8 characters
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirm">Confirm Password</Label>
+                    <Label htmlFor="confirm-password">Confirm Password</Label>
                     <Input
-                      id="confirm"
+                      id="confirm-password"
                       type="password"
                       placeholder="Confirm new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                     />
+                    {confirmPassword.length > 0 &&
+                      newPassword !== confirmPassword && (
+                        <p className="text-xs text-destructive">
+                          Passwords do not match
+                        </p>
+                      )}
                   </div>
                 </div>
+
+                {passwordError && (
+                  <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-lg">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    {passwordError}
+                  </div>
+                )}
               </CardContent>
               <CardFooter>
-                <Button variant="outline">
-                  <Lock className="mr-2 h-4 w-4" />
+                <Button
+                  variant="outline"
+                  onClick={handlePasswordSubmit}
+                  disabled={passwordMutation.isPending}
+                >
+                  {passwordMutation.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Lock className="mr-2 h-4 w-4" />
+                  )}
                   Update Password
                 </Button>
               </CardFooter>
@@ -456,21 +602,16 @@ export function SettingsPage() {
           <motion.div variants={itemVariants}>
             <Card>
               <CardHeader>
-                <CardTitle>Appearance</CardTitle>
+                <CardTitle>
+                  Appearance{" "}
+                  <span className="text-sm text-muted-foreground">
+                    "Coming Soon"
+                  </span>
+                </CardTitle>
                 <CardDescription>
                   Customize the look and feel of the app
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Theme</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Select your preferred theme
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
             </Card>
           </motion.div>
 
@@ -491,8 +632,19 @@ export function SettingsPage() {
                     </p>
                   </div>
                   <Switch
-                    checked={emailNotifications}
-                    onCheckedChange={setEmailNotifications}
+                    checked={preferences?.allow_email_notifications ?? true}
+                    onCheckedChange={(checked) =>
+                      savePreferences({
+                        allow_email_notifications: checked,
+                        allow_expiry_reminders:
+                          preferences?.allow_expiry_reminders ?? true,
+                        allow_risk_alerts:
+                          preferences?.allow_risk_alerts ?? true,
+                        allow_analysis_alerts:
+                          preferences?.allow_analysis_alerts ?? true,
+                      })
+                    }
+                    disabled={isPreferencesLoading || isSaving}
                   />
                 </div>
                 <Separator />
@@ -504,8 +656,19 @@ export function SettingsPage() {
                     </p>
                   </div>
                   <Switch
-                    checked={analysisAlerts}
-                    onCheckedChange={setAnalysisAlerts}
+                    checked={preferences?.allow_analysis_alerts ?? true}
+                    onCheckedChange={(checked) =>
+                      savePreferences({
+                        allow_email_notifications:
+                          preferences?.allow_email_notifications ?? true,
+                        allow_expiry_reminders:
+                          preferences?.allow_expiry_reminders ?? true,
+                        allow_risk_alerts:
+                          preferences?.allow_risk_alerts ?? true,
+                        allow_analysis_alerts: checked,
+                      })
+                    }
+                    disabled={isPreferencesLoading || isSaving}
                   />
                 </div>
                 <Separator />
@@ -516,7 +679,21 @@ export function SettingsPage() {
                       Reminders before contract expiration
                     </p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch
+                    checked={preferences?.allow_expiry_reminders ?? true}
+                    onCheckedChange={(checked) =>
+                      savePreferences({
+                        allow_email_notifications:
+                          preferences?.allow_email_notifications ?? true,
+                        allow_expiry_reminders: checked,
+                        allow_risk_alerts:
+                          preferences?.allow_risk_alerts ?? true,
+                        allow_analysis_alerts:
+                          preferences?.allow_analysis_alerts ?? true,
+                      })
+                    }
+                    disabled={isPreferencesLoading || isSaving}
+                  />
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
@@ -526,34 +703,21 @@ export function SettingsPage() {
                       Alerts for high-risk documents
                     </p>
                   </div>
-                  <Switch defaultChecked />
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div variants={itemVariants}>
-            <Card>
-              <CardHeader>
-                <CardTitle>Language & Region</CardTitle>
-                <CardDescription>
-                  Configure your language and date preferences
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="language">Language</Label>
-                    <Input id="language" defaultValue="English (US)" disabled />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="timezone">Timezone</Label>
-                    <Input
-                      id="timezone"
-                      defaultValue="America/New_York"
-                      disabled
-                    />
-                  </div>
+                  <Switch
+                    checked={preferences?.allow_risk_alerts ?? true}
+                    onCheckedChange={(checked) =>
+                      savePreferences({
+                        allow_email_notifications:
+                          preferences?.allow_email_notifications ?? true,
+                        allow_expiry_reminders:
+                          preferences?.allow_expiry_reminders ?? true,
+                        allow_risk_alerts: checked,
+                        allow_analysis_alerts:
+                          preferences?.allow_analysis_alerts ?? true,
+                      })
+                    }
+                    disabled={isPreferencesLoading || isSaving}
+                  />
                 </div>
               </CardContent>
             </Card>

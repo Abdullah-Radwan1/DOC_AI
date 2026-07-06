@@ -85,7 +85,7 @@ const severityColors = {
 };
 
 export function DocumentPage() {
-  const { documentId } = useParams({ from: "/app/documents/$documentId" });
+  const { documentId } = useParams({ from: "/app/dashboard/documents/$documentId" });
   const { data: document, isLoading: docLoading } = useDocument(documentId);
   const { data: analysis = {} as any, isLoading: analysisLoading } =
     useDocumentAnalysis(documentId);
@@ -140,7 +140,7 @@ export function DocumentPage() {
       >
         <div className="space-y-2">
           <Link
-            to="/documents"
+            to="/dashboard/documents"
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -1017,7 +1017,7 @@ export function DocumentPage() {
         className="flex items-center justify-between py-4 border-t"
       >
         <Button variant="outline" asChild>
-          <Link to="/documents">
+          <Link to="/dashboard/documents">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Documents
           </Link>

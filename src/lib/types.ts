@@ -2,11 +2,19 @@
 
 export type UserRole = "admin" | "compliance_manager" | "auditor" | "viewer";
 
+export interface NotificationPreferences {
+  allow_email_notifications: boolean;
+  allow_expiry_reminders: boolean;
+  allow_risk_alerts: boolean;
+  allow_analysis_alerts: boolean;
+}
+
 export interface User {
   id: string;
   email: string;
   full_name: string | null;
   role: UserRole;
+  notification_preferences?: NotificationPreferences;
 }
 
 export interface Document {

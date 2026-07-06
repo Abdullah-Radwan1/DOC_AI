@@ -4,12 +4,8 @@ import { motion } from "framer-motion";
 import {
   useReactTable,
   getCoreRowModel,
-  getSortedRowModel,
-  getPaginationRowModel,
   flexRender,
   SortingState,
-  ColumnFiltersState,
-  getFilteredRowModel,
 } from "@tanstack/react-table";
 import { useDocuments, useDeleteDocument } from "@/hooks/useDocuments";
 import { Card, CardContent } from "@/components/ui/card";
@@ -59,81 +55,6 @@ import {
   Upload,
 } from "lucide-react";
 
-const mockDocuments = [
-  {
-    id: "1",
-    filename: "Contract_Acme_2024.pdf",
-    status: "analyzed",
-    risk_level: "high",
-    compliance_score: 62,
-    created_at: "2024-01-15T10:30:00Z",
-    file_size: 2450000,
-  },
-  {
-    id: "2",
-    filename: "NDA_TechStart.pdf",
-    status: "analyzed",
-    risk_level: "medium",
-    compliance_score: 75,
-    created_at: "2024-01-14T14:20:00Z",
-    file_size: 1800000,
-  },
-  {
-    id: "3",
-    filename: "Service_Agreement_Global.docx.pdf",
-    status: "pending",
-    risk_level: null,
-    compliance_score: null,
-    created_at: "2024-01-14T09:15:00Z",
-    file_size: 3200000,
-  },
-  {
-    id: "4",
-    filename: "Privacy_Policy_v2.pdf",
-    status: "analyzed",
-    risk_level: "low",
-    compliance_score: 92,
-    created_at: "2024-01-13T16:45:00Z",
-    file_size: 1500000,
-  },
-  {
-    id: "5",
-    filename: "Employment_Contract_JD.pdf",
-    status: "analyzing",
-    risk_level: null,
-    compliance_score: null,
-    created_at: "2024-01-13T11:00:00Z",
-    file_size: 2100000,
-  },
-  {
-    id: "6",
-    filename: "Vendor_Agreement_SupplyCo.pdf",
-    status: "analyzed",
-    risk_level: "high",
-    compliance_score: 45,
-    created_at: "2024-01-12T08:30:00Z",
-    file_size: 2800000,
-  },
-  {
-    id: "7",
-    filename: "Partnership_Deed_NextGen.pdf",
-    status: "failed",
-    risk_level: null,
-    compliance_score: null,
-    created_at: "2024-01-11T15:00:00Z",
-    file_size: 3500000,
-  },
-  {
-    id: "8",
-    filename: "Licensing_Deal_MediaInc.pdf",
-    status: "analyzed",
-    risk_level: "medium",
-    compliance_score: 78,
-    created_at: "2024-01-10T12:45:00Z",
-    file_size: 1900000,
-  },
-];
-
 const statusConfig: Record<
   string,
   {
@@ -143,14 +64,20 @@ const statusConfig: Record<
     animate?: boolean;
   }
 > = {
-  pending: { badge: "outline", icon: Clock, label: "Pending" },
-  analyzing: {
+  uploaded: { badge: "outline", icon: Clock, label: "Uploaded" },
+  extracting: {
     badge: "secondary",
     icon: Loader2,
-    label: "Analyzing",
+    label: "Extracting",
     animate: true,
   },
-  analyzed: { badge: "default", icon: CheckCircle2, label: "Analyzed" },
+  chunking: {
+    badge: "secondary",
+    icon: Loader2,
+    label: "Chunking",
+    animate: true,
+  },
+  ready: { badge: "default", icon: CheckCircle2, label: "Ready" },
   failed: { badge: "destructive", icon: AlertTriangle, label: "Failed" },
 };
 
@@ -161,22 +88,37 @@ const riskConfig = {
 };
 
 export function DocumentsPage() {
-  const { data: documents, isLoading } = useDocuments();
-  const deleteMutation = useDeleteDocument();
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [riskFilter, setRiskFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-  const data = useMemo(() => {
-    const docs = documents?.length ? documents : mockDocuments;
-    return docs.filter((doc) => {
-      if (riskFilter !== "all" && doc.risk_level !== riskFilter) return false;
-      if (statusFilter !== "all" && doc.status !== statusFilter) return false;
-      return true;
-    });
-  }, [documents, riskFilter, statusFilter]);
+  // Extract sorting parameters
+  const sortBy = sorting[0]?.id || "created_at";
+  const sortOrder = sorting[0]?.desc ? "desc" : "asc";
+
+  const { data: response, isLoading } = useDocuments({
+    page,
+    limit: pageSize,
+    search: globalFilter || undefined,
+    status: statusFilter === "all" ? undefined : statusFilter,
+    riskLevel: riskFilter === "all" ? undefined : riskFilter,
+    sortBy,
+    sortOrder,
+  });
+
+  const deleteMutation = useDeleteDocument();
+
+  const documents = response?.data ?? [];
+  const meta = response?.meta ?? {
+    totalItems: 0,
+    itemCount: 0,
+    itemsPerPage: pageSize,
+    totalPages: 1,
+    currentPage: 1,
+  };
 
   const columns = useMemo(
     () => [
@@ -214,15 +156,20 @@ export function DocumentsPage() {
         accessorKey: "status",
         header: "Status",
         cell: ({ row }: any) => {
+          const status = row.original.status;
           const config =
-            statusConfig[row.original.status as keyof typeof statusConfig];
-          const Icon = config?.icon || Clock;
+            statusConfig[status as keyof typeof statusConfig] || {
+              badge: "outline",
+              icon: Clock,
+              label: status || "Unknown",
+            };
+          const Icon = config.icon;
           return (
-            <Badge variant={config?.badge as any} className="gap-1">
+            <Badge variant={config.badge} className="gap-1">
               <Icon
-                className={`h-3 w-3 ${config?.animate ? "animate-spin" : ""}`}
+                className={`h-3 w-3 ${config.animate ? "animate-spin" : ""}`}
               />
-              {config?.label}
+              {config.label}
             </Badge>
           );
         },
@@ -234,7 +181,7 @@ export function DocumentsPage() {
           const risk = row.original.risk_level;
           if (!risk) return <span className="text-muted-foreground">--</span>;
           const config = riskConfig[risk as keyof typeof riskConfig];
-          return <Badge variant={config?.badge as any}>{config?.label}</Badge>;
+          return <Badge variant={config?.badge as any}>{config?.label || risk}</Badge>;
         },
       },
       {
@@ -285,7 +232,9 @@ export function DocumentsPage() {
         ),
         cell: ({ row }: any) => (
           <span className="text-sm text-muted-foreground">
-            {new Date(row.original.created_at).toLocaleDateString()}
+            {row.original.created_at
+              ? new Date(row.original.created_at).toLocaleDateString()
+              : "--"}
           </span>
         ),
       },
@@ -307,7 +256,7 @@ export function DocumentsPage() {
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem asChild>
                 <Link
-                  to="/documents/$documentId"
+                  to="/dashboard/documents/$documentId"
                   params={{ documentId: row.original.id }}
                 >
                   <Eye className="mr-2 h-4 w-4" />
@@ -338,18 +287,15 @@ export function DocumentsPage() {
   );
 
   const table = useReactTable({
-    data,
+    data: documents,
     columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
-      columnFilters,
     },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+    manualSorting: true,
   });
 
   return (
@@ -367,7 +313,7 @@ export function DocumentsPage() {
           </p>
         </div>
         <Button asChild>
-          <Link to="/upload">
+          <Link to="/dashboard/upload">
             <Upload className="mr-2 h-4 w-4" />
             Upload Document
           </Link>
@@ -383,24 +329,40 @@ export function DocumentsPage() {
               <Input
                 placeholder="Search documents..."
                 value={globalFilter}
-                onChange={(e) => setGlobalFilter(e.target.value)}
+                onChange={(e) => {
+                  setGlobalFilter(e.target.value);
+                  setPage(1); // Reset page to 1 on search
+                }}
                 className="pl-9 max-w-sm"
               />
             </div>
             <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select
+                value={statusFilter}
+                onValueChange={(val) => {
+                  setStatusFilter(val);
+                  setPage(1); // Reset page to 1 on filter
+                }}
+              >
                 <SelectTrigger className="w-[140px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="analyzing">Analyzing</SelectItem>
-                  <SelectItem value="analyzed">Analyzed</SelectItem>
+                  <SelectItem value="uploaded">Uploaded</SelectItem>
+                  <SelectItem value="extracting">Extracting</SelectItem>
+                  <SelectItem value="chunking">Chunking</SelectItem>
+                  <SelectItem value="ready">Ready</SelectItem>
                   <SelectItem value="failed">Failed</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={riskFilter} onValueChange={setRiskFilter}>
+              <Select
+                value={riskFilter}
+                onValueChange={(val) => {
+                  setRiskFilter(val);
+                  setPage(1); // Reset page to 1 on filter
+                }}
+              >
                 <SelectTrigger className="w-[140px]">
                   <SelectValue placeholder="Risk" />
                 </SelectTrigger>
@@ -436,11 +398,11 @@ export function DocumentsPage() {
                       {headerGroup.headers.map((header) => (
                         <TableHead key={header.id}>
                           {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
+                             ? null
+                             : flexRender(
+                                 header.column.columnDef.header,
+                                 header.getContext(),
+                               )}
                         </TableHead>
                       ))}
                     </TableRow>
@@ -474,7 +436,7 @@ export function DocumentsPage() {
                           <FileText className="h-8 w-8" />
                           <p>No documents found.</p>
                           <Button variant="outline" size="sm" asChild>
-                            <Link to="/upload">Upload your first document</Link>
+                            <Link to="/dashboard/upload">Upload your first document</Link>
                           </Button>
                         </div>
                       </TableCell>
@@ -488,58 +450,65 @@ export function DocumentsPage() {
       </Card>
 
       {/* Pagination */}
-      {data.length > 0 && (
+      {!isLoading && meta.totalItems > 0 && (
         <div className="flex items-center justify-between px-2">
           <div className="text-sm text-muted-foreground">
-            Showing{" "}
-            {table.getState().pagination.pageIndex *
-              table.getState().pagination.pageSize +
-              1}{" "}
-            to{" "}
-            {Math.min(
-              (table.getState().pagination.pageIndex + 1) *
-                table.getState().pagination.pageSize,
-              data.length,
-            )}{" "}
-            of {data.length} documents
+            Showing {(page - 1) * pageSize + 1} to{" "}
+            {Math.min(page * pageSize, meta.totalItems)} of {meta.totalItems} documents
           </div>
           <div className="flex items-center space-x-2">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
+              onClick={() => setPage(1)}
+              disabled={page === 1}
             >
               <ChevronsLeft className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              disabled={page === 1}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="text-sm text-muted-foreground">
-              Page {table.getState().pagination.pageIndex + 1} of{" "}
-              {table.getPageCount()}
+              Page {page} of {meta.totalPages}
             </span>
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
+              onClick={() => setPage((prev) => Math.min(meta.totalPages, prev + 1))}
+              disabled={page === meta.totalPages}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-              disabled={!table.getCanNextPage()}
+              onClick={() => setPage(meta.totalPages)}
+              disabled={page === meta.totalPages}
             >
               <ChevronsRight className="h-4 w-4" />
             </Button>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(val) => {
+                setPageSize(Number(val));
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[80px] h-8 ml-2">
+                <SelectValue placeholder={String(pageSize)} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       )}

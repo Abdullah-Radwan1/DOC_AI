@@ -28,7 +28,8 @@ import { DocumentsPage } from "@/routes/documents/index";
 import { SettingsPage } from "@/routes/settings";
 import { NotificationsPage } from "@/routes/notifications";
 
-import { api } from "@/lib/api";
+import { getCurrentUser } from "@/lib/endpoints";
+import type { User } from "@/lib/types";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,18 +54,18 @@ const rootRoute = createRootRoute({
 const requireNoAuth = async () => {
   let isAuthenticated = false;
   try {
-    const data = queryClient.getQueryData(["auth", "me"]);
-    if (data) {
+    const cached = queryClient.getQueryData<{ user: User | null }>(["auth", "me"]);
+    if (cached?.user) {
       isAuthenticated = true;
     } else {
-      await queryClient.fetchQuery({
+      const data = await queryClient.fetchQuery({
         queryKey: ["auth", "me"],
         queryFn: async () => {
-          const res = await api.get("/auth/me");
-          return res.data;
+          const user = await getCurrentUser();
+          return { user };
         },
       });
-      isAuthenticated = true;
+      isAuthenticated = !!data?.user;
     }
   } catch (error) {
     isAuthenticated = false;
@@ -78,19 +79,19 @@ const requireAuth = async () => {
   let isAuthenticated = false;
   try {
     // 1. Check if user data is already cached
-    const data = queryClient.getQueryData(["auth", "me"]);
-    if (data) {
+    const cached = queryClient.getQueryData<{ user: User | null }>(["auth", "me"]);
+    if (cached?.user) {
       isAuthenticated = true;
     } else {
       // 2. Fetch if not cached (handles hard refreshes)
-      await queryClient.fetchQuery({
+      const data = await queryClient.fetchQuery({
         queryKey: ["auth", "me"],
         queryFn: async () => {
-          const res = await api.get("/auth/me");
-          return res.data;
+          const user = await getCurrentUser();
+          return { user };
         },
       });
-      isAuthenticated = true;
+      isAuthenticated = !!data?.user;
     }
   } catch (error) {
     isAuthenticated = false;
@@ -146,37 +147,42 @@ const dashboardRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: "/dashboard",
   component: DashboardPage,
-  beforeLoad: () => requireAuth,
+  beforeLoad: requireAuth,
 });
 
 const uploadRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: "/dashboard/upload",
   component: UploadPage,
+  beforeLoad: requireAuth,
 });
 
 const documentsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: "/dashboard/documents",
   component: DocumentsPage,
+  beforeLoad: requireAuth,
 });
 
 const documentRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: "/dashboard/documents/$documentId",
   component: DocumentPage,
+  beforeLoad: requireAuth,
 });
 
 const settingsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: "/dashboard/settings",
   component: SettingsPage,
+  beforeLoad: requireAuth,
 });
 
 const notificationsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: "/dashboard/notifications",
   component: NotificationsPage,
+  beforeLoad: requireAuth,
 });
 
 // Route tree

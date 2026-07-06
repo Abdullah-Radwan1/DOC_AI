@@ -2,11 +2,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as endpoints from "@/lib/endpoints";
 import type { ActivityLogItem } from "@/lib/schemas";
 
-export function useDocuments() {
+export function useDocuments(params?: endpoints.DocumentQueryParams) {
   return useQuery({
-    queryKey: ["documents"],
+    queryKey: ["documents", params],
     queryFn: async () => {
-      return endpoints.getDocuments();
+      return endpoints.getDocuments(params);
     },
   });
 }

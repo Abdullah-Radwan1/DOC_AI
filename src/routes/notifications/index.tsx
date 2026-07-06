@@ -6,37 +6,72 @@ import {
   AlertTriangle,
   Info,
   ShieldCheck,
-  AlertOctagon,
-  Trash2,
-  MailOpen,
+  ShieldAlert,
   BellOff,
+  MailOpen,
+  Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { notifications as initialNotifications } from "@/lib/mock-data";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import {
+  useNotifications,
+  useMarkRead,
+  useMarkAllRead,
+} from "@/hooks/useNotifications";
+import type { AppNotification } from "@/lib/schemas";
 
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+type UITone = "warning" | "danger" | "info" | "success";
+
+function getUITone(type: AppNotification["type"]): UITone {
+  switch (type) {
+    case "expiration_warning":
+      return "warning";
+    case "compliance_alert":
+      return "danger";
+    case "system_alert":
+    default:
+      return "info";
+  }
+}
+
+const iconMap: Record<UITone, React.ComponentType<{ className?: string }>> = {
   warning: AlertTriangle,
-  success: ShieldCheck,
-  danger: AlertOctagon,
+  danger: ShieldAlert,
   info: Info,
+  success: ShieldCheck,
 };
 
-const toneMap: Record<string, string> = {
+const toneMap: Record<UITone, string> = {
   warning: "bg-warning/10 text-warning dark:bg-warning/20",
-  success: "bg-success/10 text-success dark:bg-success/20",
   danger: "bg-destructive/10 text-destructive dark:bg-destructive/20",
-  info: "bg-info/10 text-info dark:bg-info/20",
+  info: "bg-primary/10 text-primary dark:bg-primary/20",
+  success: "bg-success/10 text-success dark:bg-success/20",
 };
+
+function timeAgo(isoString: string): string {
+  const diff = Date.now() - new Date(isoString).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(isoString).toLocaleDateString();
+}
+
+// ─── Animation variants ───────────────────────────────────────────────────────
 
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.05 },
-  },
+  visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
 };
 
 const itemVariants = {
@@ -45,36 +80,58 @@ const itemVariants = {
   exit: { opacity: 0, x: -50, transition: { duration: 0.2 } },
 };
 
-export function NotificationsPage() {
-  const [notifications, setNotifications] = useState(initialNotifications);
-  const [activeTab, setActiveTab] = useState<"all" | "unread" | "alerts">(
-    "all",
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+function NotificationSkeleton() {
+  return (
+    <div className="flex gap-4 p-5 animate-pulse">
+      <Skeleton className="h-10 w-10 rounded-xl shrink-0" />
+      <div className="flex-1 space-y-2">
+        <Skeleton className="h-4 w-48" />
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-24" />
+      </div>
+    </div>
   );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
+type ActiveTab = "all" | "unread" | "alerts";
+
+export function NotificationsPage() {
+  const [activeTab, setActiveTab] = useState<ActiveTab>("all");
+
+  // Fetch all notifications (no server-side filter — we filter client-side for tab counts)
+  const { data, isLoading, isError, refetch } = useNotifications({ limit: 100 });
+  const markRead = useMarkRead();
+  const markAllRead = useMarkAllRead();
+
+  const notifications = data?.data ?? [];
 
   const filteredNotifications = notifications.filter((n) => {
-    if (activeTab === "unread") return !n.read;
+    if (activeTab === "unread") return n.status === "unread";
     if (activeTab === "alerts")
-      return n.type === "warning" || n.type === "danger";
+      return n.type === "expiration_warning" || n.type === "compliance_alert";
     return true;
   });
 
-  const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const unreadCount = notifications.filter((n) => n.status === "unread").length;
+  const alertCount = notifications.filter(
+    (n) => n.type === "expiration_warning" || n.type === "compliance_alert",
+  ).length;
+
+  const handleMarkRead = (n: AppNotification) => {
+    if (n.status === "unread") {
+      markRead.mutate(n.id);
+    }
   };
 
-  const toggleRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n)),
-    );
-  };
-
-  const deleteNotification = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  };
-
-  const clearAll = () => {
-    setNotifications([]);
+  const handleMarkAllRead = async () => {
+    markAllRead.mutate(undefined, {
+      onSuccess: () => toast.success("All notifications marked as read."),
+      onError: () => toast.error("Failed to mark all as read."),
+    });
   };
 
   return (
@@ -92,40 +149,43 @@ export function NotificationsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
           <p className="text-muted-foreground mt-1">
-            Stay on top of contract events, compliance alerts, and AI analyses.
+            Stay on top of contract events, compliance alerts, and expiration warnings.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {notifications.some((n) => !n.read) && (
+          {unreadCount > 0 && (
             <Button
               variant="outline"
               size="sm"
-              onClick={markAllRead}
+              onClick={handleMarkAllRead}
+              disabled={markAllRead.isPending}
               className="h-9"
             >
-              <CheckCheck className="h-4 w-4 mr-2" />
+              {markAllRead.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <CheckCheck className="h-4 w-4 mr-2" />
+              )}
               Mark all read
             </Button>
           )}
-          {notifications.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearAll}
-              className="h-9 text-muted-foreground hover:text-destructive"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Clear all
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => refetch()}
+            className="h-9 text-muted-foreground"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
         </div>
       </motion.div>
 
-      {/* Tabs list */}
+      {/* Tabs */}
       <motion.div variants={itemVariants}>
         <Tabs
           value={activeTab}
-          onValueChange={(val) => setActiveTab(val as any)}
+          onValueChange={(val) => setActiveTab(val as ActiveTab)}
           className="w-full"
         >
           <TabsList className="grid w-full max-w-md grid-cols-3 h-11 bg-muted/50 border border-border/50">
@@ -137,26 +197,20 @@ export function NotificationsPage() {
             </TabsTrigger>
             <TabsTrigger value="unread" className="flex items-center gap-2">
               Unread
-              {notifications.filter((n) => !n.read).length > 0 && (
+              {unreadCount > 0 && (
                 <Badge className="ml-1 px-1.5 py-0 text-xs bg-brand hover:bg-brand-dark">
-                  {notifications.filter((n) => !n.read).length}
+                  {unreadCount}
                 </Badge>
               )}
             </TabsTrigger>
             <TabsTrigger value="alerts" className="flex items-center gap-2">
               Alerts
-              {notifications.filter(
-                (n) => n.type === "warning" || n.type === "danger",
-              ).length > 0 && (
+              {alertCount > 0 && (
                 <Badge
                   variant="destructive"
                   className="ml-1 px-1.5 py-0 text-xs"
                 >
-                  {
-                    notifications.filter(
-                      (n) => n.type === "warning" || n.type === "danger",
-                    ).length
-                  }
+                  {alertCount}
                 </Badge>
               )}
             </TabsTrigger>
@@ -164,102 +218,140 @@ export function NotificationsPage() {
         </Tabs>
       </motion.div>
 
-      {/* Notifications Card List */}
+      {/* Notification List */}
       <motion.div variants={itemVariants}>
         <Card className="border border-border/50 shadow-soft overflow-hidden bg-card/30 backdrop-blur-md">
           <CardContent className="p-0">
             <div className="divide-y divide-border/50">
-              <AnimatePresence mode="popLayout" initial={false}>
-                {filteredNotifications.length > 0 ? (
-                  filteredNotifications.map((n) => {
-                    const Icon = iconMap[n.type] ?? Bell;
-                    return (
-                      <motion.div
-                        key={n.id}
-                        variants={itemVariants}
-                        exit="exit"
-                        layout
-                        onClick={() => toggleRead(n.id)}
-                        className={`flex gap-4 p-5 hover:bg-muted/30 cursor-pointer transition-colors duration-200 relative group ${
-                          !n.read
-                            ? "bg-primary/[0.02] dark:bg-primary/[0.04]"
-                            : ""
-                        }`}
-                      >
-                        {/* Left Tone Icon */}
-                        <div
-                          className={`h-10 w-10 rounded-xl grid place-items-center shrink-0 transition-transform group-hover:scale-105 duration-200 ${toneMap[n.type]}`}
+              {/* Loading state */}
+              {isLoading && (
+                <>
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <NotificationSkeleton key={i} />
+                  ))}
+                </>
+              )}
+
+              {/* Error state */}
+              {isError && !isLoading && (
+                <div className="flex flex-col items-center justify-center p-12 text-center">
+                  <div className="h-12 w-12 rounded-full bg-destructive/10 grid place-items-center mb-4">
+                    <Bell className="h-6 w-6 text-destructive" />
+                  </div>
+                  <h3 className="font-semibold text-lg">Failed to Load</h3>
+                  <p className="text-sm text-muted-foreground max-w-sm mt-1 mb-4">
+                    Could not fetch your notifications. Please try again.
+                  </p>
+                  <Button variant="outline" size="sm" onClick={() => refetch()}>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Retry
+                  </Button>
+                </div>
+              )}
+
+              {/* Notification items */}
+              {!isLoading && !isError && (
+                <AnimatePresence mode="popLayout" initial={false}>
+                  {filteredNotifications.length > 0 ? (
+                    filteredNotifications.map((n) => {
+                      const tone = getUITone(n.type);
+                      const Icon = iconMap[tone];
+                      const isUnread = n.status === "unread";
+
+                      return (
+                        <motion.div
+                          key={n.id}
+                          variants={itemVariants}
+                          exit="exit"
+                          layout
+                          onClick={() => handleMarkRead(n)}
+                          className={`flex gap-4 p-5 hover:bg-muted/30 cursor-pointer transition-colors duration-200 relative group ${
+                            isUnread
+                              ? "bg-primary/[0.02] dark:bg-primary/[0.04]"
+                              : ""
+                          }`}
                         >
-                          <Icon className="h-5 w-5" />
-                        </div>
-
-                        {/* Middle Text Details */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span
-                                className={`font-semibold text-sm sm:text-base ${!n.read ? "text-foreground font-semibold" : "text-muted-foreground"}`}
-                              >
-                                {n.title}
-                              </span>
-                              {!n.read && (
-                                <Badge className="bg-accent hover:bg-accent h-5 text-[10px] px-2">
-                                  New
-                                </Badge>
-                              )}
-                            </div>
-                            <span className="text-xs text-muted-foreground whitespace-nowrap pt-1">
-                              {n.time}
-                            </span>
+                          {/* Tone Icon */}
+                          <div
+                            className={`h-10 w-10 rounded-xl grid place-items-center shrink-0 transition-transform group-hover:scale-105 duration-200 ${toneMap[tone]}`}
+                          >
+                            <Icon className="h-5 w-5" />
                           </div>
-                          <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
-                            {n.body}
-                          </p>
-                        </div>
 
-                        {/* Action buttons on hover */}
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 self-center">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 hover:bg-muted"
-                            title={n.read ? "Mark as unread" : "Mark as read"}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleRead(n.id);
-                            }}
-                          >
-                            <MailOpen className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                            title="Delete"
-                            onClick={(e) => deleteNotification(n.id, e)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </motion.div>
-                    );
-                  })
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex flex-col items-center justify-center p-12 text-center"
-                  >
-                    <div className="h-12 w-12 rounded-full bg-muted/50 grid place-items-center mb-4 text-muted-foreground">
-                      <BellOff className="h-6 w-6" />
-                    </div>
-                    <h3 className="font-semibold text-lg">No Notifications</h3>
-                    <p className="text-sm text-muted-foreground max-w-sm mt-1">
-                      You are all caught up! No notifications found in this tab.
-                    </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                          {/* Text Content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span
+                                  className={`font-semibold text-sm sm:text-base ${
+                                    isUnread
+                                      ? "text-foreground"
+                                      : "text-muted-foreground"
+                                  }`}
+                                >
+                                  {n.title}
+                                </span>
+                                {isUnread && (
+                                  <Badge className="bg-accent hover:bg-accent h-5 text-[10px] px-2">
+                                    New
+                                  </Badge>
+                                )}
+                              </div>
+                              <span className="text-xs text-muted-foreground whitespace-nowrap pt-1">
+                                {timeAgo(n.createdAt)}
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+                              {n.message}
+                            </p>
+                            {n.document?.originalFileName && (
+                              <p className="text-xs text-muted-foreground/70 mt-1">
+                                📄 {n.document.originalFileName}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Actions (visible on hover) */}
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 self-center">
+                            {isUnread && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 hover:bg-muted"
+                                title="Mark as read"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  markRead.mutate(n.id);
+                                }}
+                              >
+                                <MailOpen className="h-4 w-4 text-muted-foreground" />
+                              </Button>
+                            )}
+                          </div>
+                        </motion.div>
+                      );
+                    })
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex flex-col items-center justify-center p-12 text-center"
+                    >
+                      <div className="h-12 w-12 rounded-full bg-muted/50 grid place-items-center mb-4 text-muted-foreground">
+                        <BellOff className="h-6 w-6" />
+                      </div>
+                      <h3 className="font-semibold text-lg">No Notifications</h3>
+                      <p className="text-sm text-muted-foreground max-w-sm mt-1">
+                        {activeTab === "unread"
+                          ? "You're all caught up! No unread notifications."
+                          : activeTab === "alerts"
+                            ? "No compliance alerts or expiration warnings."
+                            : "You have no notifications yet."}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              )}
             </div>
           </CardContent>
         </Card>
