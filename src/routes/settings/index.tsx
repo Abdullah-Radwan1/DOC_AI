@@ -18,7 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfilePreferences } from "@/hooks/useProfilePreferences";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateProfile, changePassword } from "@/lib/endpoints";
+import { updateProfile, changePassword } from "@/lib/endpoints/user-endpoints";
 import { toast } from "sonner";
 import {
   Crown,
@@ -130,7 +130,9 @@ export function SettingsPage() {
       toast.success("Profile updated successfully.");
     },
     onError: (err: unknown) => {
-      const msg = (err as Record<string, any>)?.response?.data?.message ?? "Failed to update profile.";
+      const msg =
+        (err as Record<string, any>)?.response?.data?.message ??
+        "Failed to update profile.";
       setProfileError(msg);
       toast.error(msg);
     },
@@ -165,7 +167,9 @@ export function SettingsPage() {
       toast.success("Password changed successfully.");
     },
     onError: (err: unknown) => {
-      const msg = (err as Record<string, any>)?.response?.data?.message ?? "Failed to change password.";
+      const msg =
+        (err as Record<string, any>)?.response?.data?.message ??
+        "Failed to change password.";
       setPasswordError(msg);
       toast.error(msg);
     },

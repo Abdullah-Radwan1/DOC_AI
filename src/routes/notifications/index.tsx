@@ -103,7 +103,9 @@ export function NotificationsPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("all");
 
   // Fetch all notifications (no server-side filter — we filter client-side for tab counts)
-  const { data, isLoading, isError, refetch } = useNotifications({ limit: 100 });
+  const { data, isLoading, isError, refetch } = useNotifications({
+    limit: 100,
+  });
   const markRead = useMarkRead();
   const markAllRead = useMarkAllRead();
 
@@ -149,7 +151,8 @@ export function NotificationsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
           <p className="text-muted-foreground mt-1">
-            Stay on top of contract events, compliance alerts, and expiration warnings.
+            Stay on top of contract events, compliance alerts, and expiration
+            warnings.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -340,7 +343,9 @@ export function NotificationsPage() {
                       <div className="h-12 w-12 rounded-full bg-muted/50 grid place-items-center mb-4 text-muted-foreground">
                         <BellOff className="h-6 w-6" />
                       </div>
-                      <h3 className="font-semibold text-lg">No Notifications</h3>
+                      <h3 className="font-semibold text-lg">
+                        No Notifications
+                      </h3>
                       <p className="text-sm text-muted-foreground max-w-sm mt-1">
                         {activeTab === "unread"
                           ? "You're all caught up! No unread notifications."

@@ -1,12 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import * as endpoints from "@/lib/endpoints";
-import type { ActivityLogItem } from "@/lib/schemas";
+import * as documentEndpoints from "@/lib/endpoints/document-endpoints";
+import * as dashboardEndpoints from "@/lib/endpoints/dashboard-endpoints";
+import * as analysisEndpoints from "@/lib/endpoints/analysis-endpoints";
+import type { ActivityLogItem } from "@/lib/types/activity_types";
 
-export function useDocuments(params?: endpoints.DocumentQueryParams) {
+export function useDocuments(params?: documentEndpoints.DocumentQueryParams) {
   return useQuery({
     queryKey: ["documents", params],
     queryFn: async () => {
-      return endpoints.getDocuments(params);
+      return documentEndpoints.getDocuments(params);
     },
   });
 }
@@ -15,7 +17,7 @@ export function useDocument(documentId: string) {
   return useQuery({
     queryKey: ["document", documentId],
     queryFn: async () => {
-      return endpoints.getDocumentById(documentId);
+      return documentEndpoints.getDocumentById(documentId);
     },
     enabled: !!documentId,
   });
@@ -26,7 +28,7 @@ export function useDocumentAnalysis(_documentId: string) {
     queryKey: ["analysis", _documentId],
     queryFn: async () => {
       if (!_documentId) return null;
-      return endpoints.getDocumentAnalysis(_documentId);
+      return analysisEndpoints.getDocumentAnalysis(_documentId);
     },
     enabled: !!_documentId,
   });
@@ -44,7 +46,7 @@ export function useDashboardStats() {
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
       try {
-        return endpoints.getDashboardStats();
+        return dashboardEndpoints.getDashboardStats();
       } catch {
         return null;
       }
@@ -65,7 +67,7 @@ export function useUploadDocument() {
       file: File;
       query?: string;
     }) => {
-      return endpoints.uploadDocument({ userId, file });
+      return documentEndpoints.uploadDocument({ userId, file });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["documents"] });
@@ -79,7 +81,7 @@ export function useDeleteDocument() {
 
   return useMutation({
     mutationFn: async ({ documentId }: { documentId: string }) => {
-      await endpoints.deleteDocument(documentId);
+      await documentEndpoints.deleteDocument(documentId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["documents"] });

@@ -30,6 +30,8 @@ import {
   Bell,
   Eye,
 } from "lucide-react";
+import { Document } from "@/lib/schemas";
+import { ActivityLogItem } from "@/lib/schemas";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -81,7 +83,11 @@ function statusDotColor(status: string) {
 }
 
 function dashboardStatusColor(status: string) {
-  if (status === "Critical Attention Required" || status === "Processing Failed" || status === "Expired")
+  if (
+    status === "Critical Attention Required" ||
+    status === "Processing Failed" ||
+    status === "Expired"
+  )
     return "text-destructive";
   if (status === "Needs Review") return "text-warning";
   if (status === "Compliant") return "text-success";
@@ -197,10 +203,14 @@ export function DashboardPage() {
               </div>
               <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                 <CheckCircle2 className="h-3 w-3 text-success" />
-                <span className="text-success">{kpis?.readyDocuments ?? 0}</span>
+                <span className="text-success">
+                  {kpis?.readyDocuments ?? 0}
+                </span>
                 &nbsp;ready •&nbsp;
                 <Loader2 className="h-3 w-3 text-info animate-spin" />
-                <span className="text-info">{kpis?.processingDocuments ?? 0}</span>
+                <span className="text-info">
+                  {kpis?.processingDocuments ?? 0}
+                </span>
                 &nbsp;processing
               </p>
             </CardContent>
@@ -223,7 +233,10 @@ export function DashboardPage() {
               <div className="text-3xl font-bold">
                 {kpis?.complianceRate ?? 0}%
               </div>
-              <Progress value={kpis?.complianceRate ?? 0} className="h-2 mt-2" />
+              <Progress
+                value={kpis?.complianceRate ?? 0}
+                className="h-2 mt-2"
+              />
               <p className="text-xs text-muted-foreground mt-1">
                 of completed analyses
               </p>
@@ -249,9 +262,13 @@ export function DashboardPage() {
               </div>
               <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                 <TrendingUp className="h-3 w-3 text-success" />
-                <span className="text-success">{kpis?.completedAnalyses ?? 0}</span>
+                <span className="text-success">
+                  {kpis?.completedAnalyses ?? 0}
+                </span>
                 &nbsp;completed •&nbsp;
-                <span className="text-warning">{kpis?.pendingAnalyses ?? 0}</span>
+                <span className="text-warning">
+                  {kpis?.pendingAnalyses ?? 0}
+                </span>
                 &nbsp;pending
               </p>
             </CardContent>
@@ -272,11 +289,18 @@ export function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-destructive">
-                {(kpis?.unreadNotifications ?? 0) + (kpis?.expiredDocuments ?? 0)}
+                {(kpis?.unreadNotifications ?? 0) +
+                  (kpis?.expiredDocuments ?? 0)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                <span className="text-destructive">{kpis?.unreadNotifications ?? 0}</span> unread •{" "}
-                <span className="text-warning">{kpis?.expiringSoonDocuments ?? 0}</span> expiring soon
+                <span className="text-destructive">
+                  {kpis?.unreadNotifications ?? 0}
+                </span>{" "}
+                unread •{" "}
+                <span className="text-warning">
+                  {kpis?.expiringSoonDocuments ?? 0}
+                </span>{" "}
+                expiring soon
               </p>
             </CardContent>
           </Card>
@@ -375,14 +399,20 @@ export function DashboardPage() {
                   bar: "bg-success",
                 },
               ].map((item) => {
-                const total = (risk?.high ?? 0) + (risk?.medium ?? 0) + (risk?.low ?? 0);
-                const pct = total > 0 ? Math.round((item.value / total) * 100) : 0;
+                const total =
+                  (risk?.high ?? 0) + (risk?.medium ?? 0) + (risk?.low ?? 0);
+                const pct =
+                  total > 0 ? Math.round((item.value / total) * 100) : 0;
                 return (
                   <div key={item.label} className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${item.bg}`}>{item.icon}</div>
+                    <div className={`p-2 rounded-lg ${item.bg}`}>
+                      {item.icon}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between text-sm mb-1">
-                        <span className="text-muted-foreground">{item.label}</span>
+                        <span className="text-muted-foreground">
+                          {item.label}
+                        </span>
                         <span className="font-semibold">{item.value}</span>
                       </div>
                       <div className="h-1.5 bg-muted rounded-full overflow-hidden">
@@ -408,11 +438,31 @@ export function DashboardPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               {[
-                { label: "Critical", value: severity?.critical ?? 0, color: "bg-red-600" },
-                { label: "High", value: severity?.high ?? 0, color: "bg-orange-500" },
-                { label: "Medium", value: severity?.medium ?? 0, color: "bg-yellow-500" },
-                { label: "Low", value: severity?.low ?? 0, color: "bg-blue-500" },
-                { label: "Info", value: severity?.info ?? 0, color: "bg-muted-foreground" },
+                {
+                  label: "Critical",
+                  value: severity?.critical ?? 0,
+                  color: "bg-red-600",
+                },
+                {
+                  label: "High",
+                  value: severity?.high ?? 0,
+                  color: "bg-orange-500",
+                },
+                {
+                  label: "Medium",
+                  value: severity?.medium ?? 0,
+                  color: "bg-yellow-500",
+                },
+                {
+                  label: "Low",
+                  value: severity?.low ?? 0,
+                  color: "bg-blue-500",
+                },
+                {
+                  label: "Info",
+                  value: severity?.info ?? 0,
+                  color: "bg-muted-foreground",
+                },
               ].map((item) => {
                 const total =
                   (severity?.critical ?? 0) +
@@ -420,11 +470,14 @@ export function DashboardPage() {
                   (severity?.medium ?? 0) +
                   (severity?.low ?? 0) +
                   (severity?.info ?? 0);
-                const pct = total > 0 ? Math.round((item.value / total) * 100) : 0;
+                const pct =
+                  total > 0 ? Math.round((item.value / total) * 100) : 0;
                 return (
                   <div key={item.label} className="space-y-1">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">{item.label}</span>
+                      <span className="text-muted-foreground">
+                        {item.label}
+                      </span>
                       <span className="font-semibold">{item.value}</span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -450,7 +503,9 @@ export function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Recent Activity</CardTitle>
-                  <CardDescription>System-wide document actions</CardDescription>
+                  <CardDescription>
+                    System-wide document actions
+                  </CardDescription>
                 </div>
                 <Activity className="h-5 w-5 text-muted-foreground" />
               </div>
@@ -462,27 +517,31 @@ export function DashboardPage() {
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {recentActivity.map((item, index) => (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.04 }}
-                      className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="w-2 h-2 rounded-full bg-brand shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{item.action}</p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {item.userFullName || item.userEmail || "System"}
-                          {item.entityType ? ` · ${item.entityType}` : ""}
-                        </p>
-                      </div>
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        {formatRelativeTime(item.createdAt)}
-                      </span>
-                    </motion.div>
-                  ))}
+                  {recentActivity.map(
+                    (item: ActivityLogItem, index: number) => (
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.04 }}
+                        className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="w-2 h-2 rounded-full bg-brand shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {item.action}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {item.userFullName || item.userEmail || "System"}
+                            {item.entityType ? ` · ${item.entityType}` : ""}
+                          </p>
+                        </div>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                          {formatRelativeTime(item.createdAt)}
+                        </span>
+                      </motion.div>
+                    ),
+                  )}
                 </div>
               )}
             </CardContent>
@@ -508,7 +567,7 @@ export function DashboardPage() {
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {upcomingExpirations.map((doc) => (
+                  {upcomingExpirations.map((doc: Document) => (
                     <div
                       key={doc.id}
                       className="flex items-start gap-3 p-3 rounded-lg border border-border/50"
@@ -533,7 +592,9 @@ export function DashboardPage() {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{doc.fileName}</p>
+                        <p className="text-sm font-medium truncate">
+                          {doc.fileName}
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           {doc.daysUntilExpiration} days left
                         </p>
@@ -630,7 +691,9 @@ export function DashboardPage() {
                     className="flex items-center gap-4 py-3 first:pt-0 last:pb-0"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{doc.fileName}</p>
+                      <p className="text-sm font-medium truncate">
+                        {doc.fileName}
+                      </p>
                       <p
                         className={`text-xs font-semibold ${dashboardStatusColor(doc.dashboardStatus)}`}
                       >

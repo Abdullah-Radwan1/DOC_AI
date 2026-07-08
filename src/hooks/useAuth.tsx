@@ -1,7 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import * as endpoints from "@/lib/endpoints";
-import type { User, UserRole } from "@/lib/types";
+import * as endpoints from "@/lib/endpoints/auth-endpoints";
+import type { User, UserRole } from "@/lib/types/user_types";
 
 interface AuthContextType {
   user: User | null;

@@ -1,16 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import * as endpoints from "@/lib/endpoints";
+import * as endpoints from "@/lib/endpoints/analysis-endpoints";
+import { getComplianceQueriesByDocument } from "@/lib/endpoints/compliance_queries-endpoints.ts";
 
 export function useComplianceQueries(documentId: string) {
   return useQuery({
     queryKey: ["compliance", "document", documentId],
     queryFn: async () => {
-      return endpoints.getComplianceQueriesByDocument(documentId);
+      return getComplianceQueriesByDocument(documentId);
     },
     enabled: !!documentId,
   });
 }
-
 
 export function useAnalyzeDocument() {
   const queryClient = useQueryClient();

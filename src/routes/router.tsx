@@ -28,8 +28,8 @@ import { DocumentsPage } from "@/routes/documents/index";
 import { SettingsPage } from "@/routes/settings";
 import { NotificationsPage } from "@/routes/notifications";
 
-import { getCurrentUser } from "@/lib/endpoints";
-import type { User } from "@/lib/types";
+import { getCurrentUser } from "@/lib/endpoints/auth-endpoints";
+import type { User } from "@/lib/schemas";
 
 const queryClient = new QueryClient({
   defaultOptions: {

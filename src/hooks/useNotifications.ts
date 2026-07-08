@@ -5,8 +5,8 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
   type NotificationQueryParams,
-} from "@/lib/endpoints";
-import type { AppNotification } from "@/lib/schemas";
+} from "@/lib/endpoints/notifications-endpoints";
+import type { AppNotification } from "@/lib/types/notification_types";
 
 // ─── Query Keys ──────────────────────────────────────────────────────────────
 

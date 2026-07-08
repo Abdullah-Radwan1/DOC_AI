@@ -3,7 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useUploadDocument } from "@/hooks/useDocuments";
-import * as endpoints from "@/lib/endpoints";
+import { analyzeDocument } from "@/lib/endpoints/analysis-endpoints";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -159,7 +159,9 @@ export function UploadPage() {
       clearInterval(progressInterval);
       setStatus("error");
       toast.error("Upload failed", {
-        description: error?.response?.data?.message || "There was an error uploading your document.",
+        description:
+          error?.response?.data?.message ||
+          "There was an error uploading your document.",
       });
       return;
     }
@@ -178,7 +180,7 @@ export function UploadPage() {
           localStorage.setItem("docky_guest_id", guestId);
         }
 
-        await endpoints.analyzeDocument({
+        await analyzeDocument({
           queryText: values.prompt,
           userId: user?.id,
           guestId: guestId || undefined,
@@ -186,7 +188,8 @@ export function UploadPage() {
         });
 
         toast.success("Document uploaded successfully", {
-          description: "Your document and compliance query have been processed.",
+          description:
+            "Your document and compliance query have been processed.",
           action: {
             label: "View Analysis",
             onClick: () =>
@@ -198,7 +201,9 @@ export function UploadPage() {
         });
       } catch (error: any) {
         toast.warning("Upload successful, but analysis failed", {
-          description: error?.response?.data?.message || "We uploaded your document but couldn't run the compliance check. You can try again on the document page.",
+          description:
+            error?.response?.data?.message ||
+            "We uploaded your document but couldn't run the compliance check. You can try again on the document page.",
           action: {
             label: "View Document",
             onClick: () =>

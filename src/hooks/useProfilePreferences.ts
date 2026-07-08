@@ -1,5 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getMyPreferences, updateProfile } from "@/lib/endpoints";
+import {
+  getMyPreferences,
+  updateProfile,
+} from "@/lib/endpoints/user-endpoints";
 import type { NotificationPreferences } from "@/lib/schemas";
 import { toast } from "sonner";
 
