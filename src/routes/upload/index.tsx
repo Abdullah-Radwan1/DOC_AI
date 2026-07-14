@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,6 +7,7 @@ import { analyzeDocument } from "@/lib/endpoints/analysis-endpoints";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -52,6 +53,8 @@ export function UploadPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const uploadMutation = useUploadDocument();
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -171,19 +174,17 @@ export function UploadPage() {
     setStatus("complete");
     setUploadedDocumentId(documentResult.id);
 
+    // Invalidate notifications so sidebar bell refreshes
+    queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    queryClient.invalidateQueries({ queryKey: ["auth", "me"] }); // refresh plan quota
+
     // 2. Optional: Create Compliance Query
     if (values.prompt && values.prompt.trim() !== "") {
       try {
-        let guestId = localStorage.getItem("docky_guest_id");
-        if (!guestId && !user?.id) {
-          guestId = crypto.randomUUID();
-          localStorage.setItem("docky_guest_id", guestId);
-        }
-
         await analyzeDocument({
           queryText: values.prompt,
           userId: user?.id,
-          guestId: guestId || undefined,
+          // No guestId needed — backend identifies guests by request IP automatically
           documentId: documentResult.id,
         });
 
@@ -320,6 +321,7 @@ export function UploadPage() {
                           onDragOver={handleDragOver}
                           onDragLeave={handleDragLeave}
                           onDrop={handleDrop}
+                          onClick={() => fileInputRef.current?.click()}
                         >
                           <div
                             className={`transition-transform duration-300 ${isDragging ? "scale-110" : ""}`}
@@ -354,10 +356,12 @@ export function UploadPage() {
                           </div>
 
                           <input
+                            ref={fileInputRef}
                             type="file"
                             accept=".pdf,application/pdf"
                             className="hidden"
                             onChange={handleFileSelect}
+                            onClick={(e) => e.stopPropagation()}
                           />
                         </div>
                       ) : (

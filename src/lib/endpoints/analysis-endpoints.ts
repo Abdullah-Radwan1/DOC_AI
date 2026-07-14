@@ -112,18 +112,15 @@ export async function getDocumentAnalysis(
 export async function analyzeDocument({
   documentId,
   userId,
-  guestId,
   queryText,
 }: {
   documentId: string;
   userId?: string;
-  guestId?: string;
   queryText: string;
 }): Promise<any> {
   const { data } = await api.post("/compliance/analyze", {
     documentId,
     userId,
-    guestId,
     queryText,
   });
   return data;

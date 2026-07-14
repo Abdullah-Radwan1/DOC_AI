@@ -1,5 +1,6 @@
 import { api } from "@/lib/api";
 import { DocumentSchema, type Document } from "@/lib/schemas";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapDocument(raw: any): Document {
   const doc = {
@@ -72,13 +73,12 @@ export async function uploadDocument({
     });
     return mapDocument(data);
   } else {
+    // Guest upload: backend identifies by IP address automatically.
+    // No guestToken management needed on the client.
     const { data } = await api.post("/documents/guest-upload", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    if (data.guestToken) {
-      localStorage.setItem("docky_guest_token", data.guestToken);
-    }
-    return mapDocument(data.document);
+    return mapDocument(data.document ?? data);
   }
 }
 

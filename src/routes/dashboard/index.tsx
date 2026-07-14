@@ -313,57 +313,61 @@ export function DashboardPage() {
         className="grid gap-6 lg:grid-cols-3"
       >
         {/* Compliance Distribution */}
+        {/* Upcoming Expirations */}
         <motion.div variants={itemVariants}>
-          <Card className="h-full">
+          <Card>
             <CardHeader>
-              <CardTitle>Compliance Distribution</CardTitle>
-              <CardDescription>Based on completed analyses</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {[
-                {
-                  label: "Compliant",
-                  value: compliance?.compliant ?? 0,
-                  color: "bg-success",
-                  textColor: "text-success",
-                },
-                {
-                  label: "Partial",
-                  value: compliance?.partial ?? 0,
-                  color: "bg-warning",
-                  textColor: "text-warning",
-                },
-                {
-                  label: "Non-Compliant",
-                  value: compliance?.non_compliant ?? 0,
-                  color: "bg-destructive",
-                  textColor: "text-destructive",
-                },
-                {
-                  label: "Unknown",
-                  value: compliance?.unknown ?? 0,
-                  color: "bg-muted",
-                  textColor: "text-muted-foreground",
-                },
-              ].map((item) => (
-                <div key={item.label} className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{item.label}</span>
-                    <span className={`font-semibold ${item.textColor}`}>
-                      {item.value}{" "}
-                      <span className="text-xs font-normal text-muted-foreground">
-                        ({compliancePct(item.value)}%)
-                      </span>
-                    </span>
-                  </div>
-                  <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${item.color} rounded-full transition-all duration-700`}
-                      style={{ width: `${compliancePct(item.value)}%` }}
-                    />
-                  </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Upcoming Expirations</CardTitle>
+                  <CardDescription>Next 30 days</CardDescription>
                 </div>
-              ))}
+                <Calendar className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {upcomingExpirations.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  No documents expiring soon
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {upcomingExpirations.map((doc: Document) => (
+                    <div
+                      key={doc.id}
+                      className="flex items-start gap-3 p-3 rounded-lg border border-border/50"
+                    >
+                      <div
+                        className={`mt-0.5 p-1.5 rounded-lg ${
+                          doc.daysUntilExpiration <= 7
+                            ? "bg-destructive/10"
+                            : doc.daysUntilExpiration <= 14
+                              ? "bg-warning/10"
+                              : "bg-brand/10"
+                        }`}
+                      >
+                        <Clock
+                          className={`h-4 w-4 ${
+                            doc.daysUntilExpiration <= 7
+                              ? "text-destructive"
+                              : doc.daysUntilExpiration <= 14
+                                ? "text-warning"
+                                : "text-brand"
+                          }`}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {doc.fileName}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {doc.daysUntilExpiration} days left
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -493,120 +497,6 @@ export function DashboardPage() {
           </Card>
         </motion.div>
       </motion.div>
-
-      {/* ── Bottom row: Activity + Expirations ──────────────────────────────── */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Recent Activity */}
-        <motion.div variants={itemVariants} className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Recent Activity</CardTitle>
-                  <CardDescription>
-                    System-wide document actions
-                  </CardDescription>
-                </div>
-                <Activity className="h-5 w-5 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              {recentActivity.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  No activity yet
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {recentActivity.map(
-                    (item: ActivityLogItem, index: number) => (
-                      <motion.div
-                        key={item.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.04 }}
-                        className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors"
-                      >
-                        <div className="w-2 h-2 rounded-full bg-brand shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {item.action}
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {item.userFullName || item.userEmail || "System"}
-                            {item.entityType ? ` · ${item.entityType}` : ""}
-                          </p>
-                        </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {formatRelativeTime(item.createdAt)}
-                        </span>
-                      </motion.div>
-                    ),
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Upcoming Expirations */}
-        <motion.div variants={itemVariants}>
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Upcoming Expirations</CardTitle>
-                  <CardDescription>Next 30 days</CardDescription>
-                </div>
-                <Calendar className="h-5 w-5 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              {upcomingExpirations.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  No documents expiring soon
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {upcomingExpirations.map((doc: Document) => (
-                    <div
-                      key={doc.id}
-                      className="flex items-start gap-3 p-3 rounded-lg border border-border/50"
-                    >
-                      <div
-                        className={`mt-0.5 p-1.5 rounded-lg ${
-                          doc.daysUntilExpiration <= 7
-                            ? "bg-destructive/10"
-                            : doc.daysUntilExpiration <= 14
-                              ? "bg-warning/10"
-                              : "bg-brand/10"
-                        }`}
-                      >
-                        <Clock
-                          className={`h-4 w-4 ${
-                            doc.daysUntilExpiration <= 7
-                              ? "text-destructive"
-                              : doc.daysUntilExpiration <= 14
-                                ? "text-warning"
-                                : "text-brand"
-                          }`}
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {doc.fileName}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {doc.daysUntilExpiration} days left
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
 
       {/* ── Recent Analyses ──────────────────────────────────────────────────── */}
       {recentAnalyses.length > 0 && (

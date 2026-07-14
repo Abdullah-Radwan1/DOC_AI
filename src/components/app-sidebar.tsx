@@ -10,6 +10,11 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  Bell,
+  Sparkles,
+  TrendingUp,
+  Building2,
+  BellIcon,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -18,12 +23,15 @@ import {
   useLocation,
 } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
+import { useUnreadCount } from "@/hooks/useNotifications";
+import { LIMITS } from "@/lib/utils/plan-limits";
 
 const navItems = [
   { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { path: "/dashboard/upload", icon: Upload, label: "Upload Document" },
   { path: "/dashboard/documents", icon: FileText, label: "Documents" },
   { path: "/dashboard/settings", icon: Settings, label: "Settings" },
+  { path: "/dashboard/notifications", icon: BellIcon, label: "Bell" },
 ];
 
 interface CustomSidebarProps {
@@ -31,6 +39,39 @@ interface CustomSidebarProps {
   setIsOpen: (open: boolean) => void;
   isMobileOpen: boolean;
   setIsMobileOpen: (open: boolean) => void;
+}
+
+function PlanIcon({ plan }: { plan?: string }) {
+  switch (plan) {
+    case "growth":
+      return <TrendingUp className="w-3 h-3" />;
+    case "enterprise":
+      return <Building2 className="w-3 h-3" />;
+    default:
+      return <Sparkles className="w-3 h-3" />;
+  }
+}
+
+function getPlanLabel(plan?: string) {
+  switch (plan) {
+    case "growth":
+      return "Growth";
+    case "enterprise":
+      return "Enterprise";
+    default:
+      return "Free";
+  }
+}
+
+function getPlanColor(plan?: string) {
+  switch (plan) {
+    case "growth":
+      return "text-brand bg-brand/10";
+    case "enterprise":
+      return "text-violet-500 bg-violet-500/10";
+    default:
+      return "text-muted-foreground bg-muted";
+  }
 }
 
 export function CustomSidebar({
@@ -42,26 +83,24 @@ export function CustomSidebar({
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { data: unreadData } = useUnreadCount(!!user);
+  const unreadCount = unreadData?.count ?? 0;
 
   // Close mobile sidebar on route change
   useEffect(() => {
     setIsMobileOpen(false);
   }, [location.pathname, setIsMobileOpen]);
 
-  // Handle screen resize - close mobile sidebar when going to desktop
+  // Handle screen resize
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024 && isMobileOpen) {
         setIsMobileOpen(false);
       }
     };
-
     window.addEventListener("resize", handleResize);
     handleResize();
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
+    return () => window.removeEventListener("resize", handleResize);
   }, [isMobileOpen, setIsMobileOpen]);
 
   // Prevent body scroll when mobile sidebar is open
@@ -95,6 +134,22 @@ export function CustomSidebar({
     }
   };
 
+  // ── Plan & quota data ──────────────────────────────────────────────────────
+  const plan = user?.plan ?? "free";
+  const uploadsUsed = user?.usage_quota?.uploads_used ?? 0;
+  const analysesUsed = user?.usage_quota?.analyses_used ?? 0;
+  const planKey = plan.toUpperCase() as keyof typeof LIMITS;
+  const uploadLimit = LIMITS[planKey]?.UPLOADS ?? LIMITS.FREE.UPLOADS;
+  const analysisLimit = LIMITS[planKey]?.ANALYSES ?? LIMITS.FREE.ANALYSES;
+  const isUnlimited = uploadLimit === -1;
+  const uploadPct = isUnlimited
+    ? 100
+    : Math.min(100, (uploadsUsed / uploadLimit) * 100);
+  const analysisPct = isUnlimited
+    ? 100
+    : Math.min(100, (analysesUsed / analysisLimit) * 100);
+  const isFreePlan = plan === "free";
+
   const sidebarContent = (
     <>
       {/* Header */}
@@ -107,28 +162,48 @@ export function CustomSidebar({
             </span>
           )}
         </RouterLink>
-        {/* Desktop toggle button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="hidden lg:flex items-center justify-center rounded-lg hover:bg-accent transition-colors flex-shrink-0"
-          type="button"
-        >
-          {isOpen ? (
-            <ChevronLeft className="w-4 h-4 text-muted-foreground" />
-          ) : (
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+
+        <div className="flex items-center gap-1">
+          {/* Notification Bell */}
+          {(isOpen || isMobileOpen) && (
+            <RouterLink
+              to="/dashboard/notifications"
+              className="relative p-1.5 rounded-lg hover:bg-accent transition-colors"
+              id="sidebar-notifications-bell"
+            >
+              <Bell className="w-4 h-4 text-muted-foreground" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-white leading-none">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </RouterLink>
           )}
-        </button>
-        {/* Mobile close button */}
-        {isMobileOpen && (
+
+          {/* Desktop toggle button */}
           <button
-            onClick={() => setIsMobileOpen(false)}
-            className="lg:hidden p-2 rounded-lg hover:bg-accent transition-colors"
+            onClick={() => setIsOpen(!isOpen)}
+            className="hidden lg:flex items-center justify-center rounded-lg hover:bg-accent transition-colors flex-shrink-0"
             type="button"
           >
-            <X className="w-5 h-5 text-muted-foreground" />
+            {isOpen ? (
+              <ChevronLeft className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            )}
           </button>
-        )}
+
+          {/* Mobile close button */}
+          {isMobileOpen && (
+            <button
+              onClick={() => setIsMobileOpen(false)}
+              className="lg:hidden p-2 rounded-lg hover:bg-accent transition-colors"
+              type="button"
+            >
+              <X className="w-5 h-5 text-muted-foreground" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Content */}
@@ -175,28 +250,99 @@ export function CustomSidebar({
           </nav>
         </div>
 
-        {/* Storage Usage */}
+        {/* Notification Bell (collapsed state) */}
+        {!isOpen && !isMobileOpen && (
+          <div className="mb-4 flex justify-center">
+            <RouterLink
+              to="/dashboard/notifications"
+              className="relative p-2 rounded-lg hover:bg-accent transition-colors"
+              id="sidebar-notifications-bell-collapsed"
+            >
+              <Bell className="w-5 h-5 text-muted-foreground" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-white leading-none">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </RouterLink>
+          </div>
+        )}
+
+        {/* Plan & Usage Widget */}
         <div className="rounded-xl border bg-card p-4 space-y-3">
           {isOpen || isMobileOpen ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
+              {/* Plan badge */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-card-foreground">
-                  Storage
+                  Your Plan
                 </span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium">
-                  1/3 GB
+                <span
+                  className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${getPlanColor(plan)}`}
+                >
+                  <PlanIcon plan={plan} />
+                  {getPlanLabel(plan)}
                 </span>
               </div>
-              <div className="w-full h-1.5 rounded-full bg-secondary overflow-hidden">
-                <div className="h-full rounded-full bg-foreground w-1/3" />
+
+              {/* Upload usage */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Uploads</span>
+                  <span className="font-medium text-foreground">
+                    {isUnlimited
+                      ? `${uploadsUsed} / ∞`
+                      : `${uploadsUsed} / ${uploadLimit}`}
+                  </span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-secondary overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 ${
+                      !isUnlimited && uploadPct >= 100
+                        ? "bg-destructive"
+                        : !isUnlimited && uploadPct >= 75
+                          ? "bg-warning"
+                          : "bg-foreground"
+                    }`}
+                    style={{ width: `${isUnlimited ? 30 : uploadPct}%` }}
+                  />
+                </div>
               </div>
-              <button
-                className="flex items-center gap-2 text-xs font-medium text-foreground hover:opacity-80 transition-colors"
-                type="button"
-              >
-                <Crown className="w-3 h-3" />
-                Upgrade to Pro
-              </button>
+
+              {/* Analysis usage */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Analyses</span>
+                  <span className="font-medium text-foreground">
+                    {isUnlimited
+                      ? `${analysesUsed} / ∞`
+                      : `${analysesUsed} / ${analysisLimit}`}
+                  </span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-secondary overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 ${
+                      !isUnlimited && analysisPct >= 100
+                        ? "bg-destructive"
+                        : !isUnlimited && analysisPct >= 75
+                          ? "bg-warning"
+                          : "bg-foreground"
+                    }`}
+                    style={{ width: `${isUnlimited ? 30 : analysisPct}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Upgrade CTA for free plan */}
+              {isFreePlan && (
+                <button
+                  className="flex items-center gap-2 text-xs font-medium text-foreground hover:opacity-80 transition-colors"
+                  type="button"
+                >
+                  <Crown className="w-3 h-3" />
+                  Upgrade to Pro
+                </button>
+              )}
             </div>
           ) : (
             <div className="flex justify-center">

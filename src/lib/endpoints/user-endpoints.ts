@@ -26,6 +26,11 @@ export function mapUser(raw: any): User {
       allow_analysis_alerts:
         raw.allowAnalysisAlerts ?? raw.allow_analysis_alerts ?? true,
     },
+    plan: raw.plan,
+    usage_quota: raw.usage_quota ? {
+      uploads_used: raw.usage_quota.uploadsUsed ?? raw.usage_quota.uploads_used ?? 0,
+      analyses_used: raw.usage_quota.analysesUsed ?? raw.usage_quota.analyses_used ?? 0,
+    } : undefined,
   };
   return UserSchema.parse(user);
 }
