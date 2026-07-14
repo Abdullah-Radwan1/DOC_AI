@@ -64,6 +64,8 @@ export function UploadPage() {
   const [uploadedDocumentId, setUploadedDocumentId] = useState<string | null>(
     null,
   );
+  // true when the AI analysis query completed successfully (controls button label)
+  const [analysisCompleted, setAnalysisCompleted] = useState(false);
 
   const form = useForm<UploadFormValues>({
     resolver: zodResolver(uploadFormSchema),
@@ -134,6 +136,7 @@ export function UploadPage() {
     setStatus("idle");
     setUploadProgress(0);
     setUploadedDocumentId(null);
+    setAnalysisCompleted(false);
   };
 
   const onSubmit = async (values: UploadFormValues) => {
@@ -171,26 +174,31 @@ export function UploadPage() {
 
     clearInterval(progressInterval);
     setUploadProgress(100);
-    setStatus("complete");
-    setUploadedDocumentId(documentResult.id);
 
     // Invalidate notifications so sidebar bell refreshes
     queryClient.invalidateQueries({ queryKey: ["notifications"] });
     queryClient.invalidateQueries({ queryKey: ["auth", "me"] }); // refresh plan quota
 
-    // 2. Optional: Create Compliance Query
+    // 2. Run compliance analysis if a prompt was provided
     if (values.prompt && values.prompt.trim() !== "") {
+      // Move to analyzing BEFORE the analysis call so the UI shows the right state
+      setStatus("analyzing");
+      setUploadProgress(0);
+
       try {
         await analyzeDocument({
           queryText: values.prompt,
           userId: user?.id,
-          // No guestId needed — backend identifies guests by request IP automatically
           documentId: documentResult.id,
         });
 
-        toast.success("Document uploaded successfully", {
-          description:
-            "Your document and compliance query have been processed.",
+        // Only now do we mark as complete and show "View Analysis"
+        setStatus("complete");
+        setAnalysisCompleted(true);
+        setUploadedDocumentId(documentResult.id);
+
+        toast.success("Analysis complete!", {
+          description: "Your document has been uploaded and analysed.",
           action: {
             label: "View Analysis",
             onClick: () =>
@@ -201,6 +209,9 @@ export function UploadPage() {
           },
         });
       } catch (error: any) {
+        setStatus("complete");
+        setUploadedDocumentId(documentResult.id);
+
         toast.warning("Upload successful, but analysis failed", {
           description:
             error?.response?.data?.message ||
@@ -216,6 +227,10 @@ export function UploadPage() {
         });
       }
     } else {
+      // No prompt — just mark the upload as done, show View Document (not View Analysis)
+      setStatus("complete");
+      setUploadedDocumentId(documentResult.id);
+
       toast.success("Document uploaded successfully", {
         description: "Your document has been uploaded.",
         action: {
@@ -229,6 +244,7 @@ export function UploadPage() {
       });
     }
   };
+
 
   return (
     <motion.div
@@ -382,13 +398,17 @@ export function UploadPage() {
                                   ? "bg-success/10"
                                   : status === "error"
                                     ? "bg-destructive/10"
-                                    : "bg-muted/50"
+                                    : status === "analyzing"
+                                      ? "bg-brand/10"
+                                      : "bg-muted/50"
                               }`}
                             >
                               {status === "complete" ? (
                                 <CheckCircle2 className="h-5 w-5 text-success" />
                               ) : status === "error" ? (
                                 <AlertCircle className="h-5 w-5 text-destructive" />
+                              ) : status === "analyzing" ? (
+                                <Loader2 className="h-5 w-5 text-brand animate-spin" />
                               ) : (
                                 <FileText className="h-5 w-5 text-info" />
                               )}
@@ -407,21 +427,38 @@ export function UploadPage() {
 
                               {status !== "idle" && status !== "error" && (
                                 <div className="space-y-1">
-                                  <Progress
-                                    value={uploadProgress}
-                                    className="h-1.5"
-                                  />
+                                  {status === "analyzing" ? (
+                                    // Indeterminate pulsing bar during AI analysis
+                                    <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                                      <div className="h-full w-1/2 bg-brand rounded-full animate-[slide_1.5s_ease-in-out_infinite]" />
+                                    </div>
+                                  ) : (
+                                    <Progress
+                                      value={uploadProgress}
+                                      className="h-1.5"
+                                    />
+                                  )}
                                   <div className="flex items-center justify-between">
                                     <span className="text-xs text-muted-foreground">
-                                      {status === "uploading" && "Uploading..."}
-                                      {status === "analyzing" &&
-                                        "Initiating analysis..."}
-                                      {status === "complete" &&
-                                        "Upload complete"}
+                                      {status === "uploading" && `Uploading… ${uploadProgress}%`}
+                                      {status === "analyzing" && (
+                                        <span className="flex items-center gap-1.5 text-brand font-medium">
+                                          <Loader2 className="h-3 w-3 animate-spin" />
+                                          Running AI compliance analysis…
+                                        </span>
+                                      )}
+                                      {status === "complete" && (
+                                        <span className="flex items-center gap-1.5 text-success font-medium">
+                                          <CheckCircle2 className="h-3 w-3" />
+                                          {analysisCompleted ? "Analysis complete" : "Upload complete"}
+                                        </span>
+                                      )}
                                     </span>
-                                    <span className="text-xs text-muted-foreground">
-                                      {uploadProgress}%
-                                    </span>
+                                    {status === "uploading" && (
+                                      <span className="text-xs text-muted-foreground">
+                                        {uploadProgress}%
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
                               )}
@@ -439,7 +476,7 @@ export function UploadPage() {
                                   to="/dashboard/documents/$documentId"
                                   params={{ documentId: uploadedDocumentId }}
                                 >
-                                  View Analysis
+                                  {analysisCompleted ? "View Analysis" : "View Document"}
                                   <ArrowRight className="ml-1 h-3 w-3" />
                                 </Link>
                               </Button>

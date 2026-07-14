@@ -113,14 +113,13 @@ export function NotificationsPage() {
 
   const filteredNotifications = notifications.filter((n) => {
     if (activeTab === "unread") return n.status === "unread";
-    if (activeTab === "alerts")
-      return n.type === "expiration_warning" || n.type === "compliance_alert";
+    if (activeTab === "alerts") return n.type === "expiration_warning";
     return true;
   });
-
+  console.log(notifications);
   const unreadCount = notifications.filter((n) => n.status === "unread").length;
   const alertCount = notifications.filter(
-    (n) => n.type === "expiration_warning" || n.type === "compliance_alert",
+    (n) => n.type === "expiration_warning",
   ).length;
 
   const handleMarkRead = (n: AppNotification) => {

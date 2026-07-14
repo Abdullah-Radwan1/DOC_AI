@@ -20,7 +20,6 @@ import { ContractAnalysisTabs } from "./components/contract-analysis-tabs";
 import { ComplianceProgressCard } from "./components/compliance-progress-card";
 import { MissingClausesCard } from "./components/missing-clauses-card";
 import { RecommendationsAccordion } from "./components/recommendations-accordion";
-import { ImportantDatesTimeline } from "./components/important-dates-timeline";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -289,10 +288,6 @@ export function DocumentPage() {
         />
         <RecommendationsAccordion
           recommendations={aiAnalysis?.recommendations || []}
-          itemVariants={itemVariants}
-        />
-        <ImportantDatesTimeline
-          dates={aiAnalysis?.important_dates || []}
           itemVariants={itemVariants}
         />
       </motion.div>

@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardStats } from "@/hooks/useDocuments";
-import type { DashboardSummary } from "@/lib/schemas";
+import type { DashboardSummary, UpcomingExpiration } from "@/lib/schemas";
 import {
   Card,
   CardContent,
@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import {
   FileText,
   TrendingUp,
@@ -21,17 +20,12 @@ import {
   Upload,
   ArrowRight,
   BarChart3,
-  Shield,
-  Activity,
   Calendar,
   CheckCircle2,
   XCircle,
-  Loader2,
-  Bell,
   Eye,
 } from "lucide-react";
 import { Document } from "@/lib/schemas";
-import { ActivityLogItem } from "@/lib/schemas";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -110,12 +104,12 @@ function DashboardSkeleton() {
   return (
     <div className="space-y-8 animate-pulse">
       <div className="h-10 w-64 bg-muted rounded-lg" />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="h-32 bg-muted rounded-xl" />
         ))}
       </div>
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-2">
         <div className="lg:col-span-2 h-64 bg-muted rounded-xl" />
         <div className="h-64 bg-muted rounded-xl" />
       </div>
@@ -139,8 +133,10 @@ export function DashboardPage() {
   const risk = summary?.riskDistribution;
   const severity = summary?.findingsSeverityBreakdown;
   const recentAnalyses = summary?.recentAnalyses ?? [];
-  const recentActivity = summary?.recentActivity ?? [];
+
   const upcomingExpirations = summary?.upcomingExpirations ?? [];
+  console.log(summary);
+  console.log("exp", upcomingExpirations);
   const attentionDocs = summary?.documentsRequiringAttention ?? [];
 
   const totalCompliance =
@@ -183,136 +179,8 @@ export function DashboardPage() {
       {/* ── KPI Cards ───────────────────────────────────────────────────────── */}
       <motion.div
         variants={containerVariants}
-        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+        className="grid gap-4 md:grid-cols-2 lg:grid-cols-2"
       >
-        {/* Total Documents */}
-        <motion.div variants={itemVariants}>
-          <Card className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-brand/10 to-accent/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Documents
-              </CardTitle>
-              <div className="p-2 rounded-lg bg-brand/10">
-                <FileText className="h-4 w-4 text-brand" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {kpis?.totalDocuments ?? 0}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3 text-success" />
-                <span className="text-success">
-                  {kpis?.readyDocuments ?? 0}
-                </span>
-                &nbsp;ready •&nbsp;
-                <Loader2 className="h-3 w-3 text-info animate-spin" />
-                <span className="text-info">
-                  {kpis?.processingDocuments ?? 0}
-                </span>
-                &nbsp;processing
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Compliance Rate */}
-        <motion.div variants={itemVariants}>
-          <Card className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-success/10 to-accent/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Compliance Rate
-              </CardTitle>
-              <div className="p-2 rounded-lg bg-success/10">
-                <Shield className="h-4 w-4 text-success" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {kpis?.complianceRate ?? 0}%
-              </div>
-              <Progress
-                value={kpis?.complianceRate ?? 0}
-                className="h-2 mt-2"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                of completed analyses
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Analyses */}
-        <motion.div variants={itemVariants}>
-          <Card className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-accent/10 to-info/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Analyses
-              </CardTitle>
-              <div className="p-2 rounded-lg bg-accent/10">
-                <BarChart3 className="h-4 w-4 text-accent" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {kpis?.totalAnalyses ?? 0}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                <TrendingUp className="h-3 w-3 text-success" />
-                <span className="text-success">
-                  {kpis?.completedAnalyses ?? 0}
-                </span>
-                &nbsp;completed •&nbsp;
-                <span className="text-warning">
-                  {kpis?.pendingAnalyses ?? 0}
-                </span>
-                &nbsp;pending
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Alerts */}
-        <motion.div variants={itemVariants}>
-          <Card className="relative overflow-hidden border-destructive/20">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-destructive/10 to-warning/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Alerts
-              </CardTitle>
-              <div className="p-2 rounded-lg bg-destructive/10">
-                <Bell className="h-4 w-4 text-destructive" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-destructive">
-                {(kpis?.unreadNotifications ?? 0) +
-                  (kpis?.expiredDocuments ?? 0)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                <span className="text-destructive">
-                  {kpis?.unreadNotifications ?? 0}
-                </span>{" "}
-                unread •{" "}
-                <span className="text-warning">
-                  {kpis?.expiringSoonDocuments ?? 0}
-                </span>{" "}
-                expiring soon
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </motion.div>
-
-      {/* ── Middle row: Compliance + Risk + Findings ─────────────────────────── */}
-      <motion.div
-        variants={containerVariants}
-        className="grid gap-6 lg:grid-cols-3"
-      >
-        {/* Compliance Distribution */}
         {/* Upcoming Expirations */}
         <motion.div variants={itemVariants}>
           <Card>
@@ -327,12 +195,12 @@ export function DashboardPage() {
             </CardHeader>
             <CardContent>
               {upcomingExpirations.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">
+                <p className="text-sm text-muted-foreground text-center">
                   No documents expiring soon
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {upcomingExpirations.map((doc: Document) => (
+                  {upcomingExpirations.map((doc: UpcomingExpiration) => (
                     <div
                       key={doc.id}
                       className="flex items-start gap-3 p-3 rounded-lg border border-border/50"
@@ -372,6 +240,43 @@ export function DashboardPage() {
           </Card>
         </motion.div>
 
+        {/* Analyses */}
+        <motion.div variants={itemVariants}>
+          <Card className="relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-accent/10 to-info/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Documents Analysed
+              </CardTitle>
+              <div className="p-2 rounded-lg bg-accent/10">
+                <BarChart3 className="h-4 w-4 text-accent" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">
+                {kpis?.totalAnalyses ?? 0}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                <TrendingUp className="h-3 w-3 text-success" />
+                <span className="text-success">
+                  {kpis?.completedAnalyses ?? 0}
+                </span>
+                &nbsp;completed •&nbsp;
+                <span className="text-warning">
+                  {kpis?.pendingAnalyses ?? 0}
+                </span>
+                &nbsp;pending
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
+
+      {/* ── Middle row: Compliance + Risk + Findings ─────────────────────────── */}
+      <motion.div
+        variants={containerVariants}
+        className="grid gap-6 lg:grid-cols-2"
+      >
         {/* Risk Distribution */}
         <motion.div variants={itemVariants}>
           <Card className="h-full">

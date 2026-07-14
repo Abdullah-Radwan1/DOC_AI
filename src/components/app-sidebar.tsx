@@ -14,7 +14,6 @@ import {
   Sparkles,
   TrendingUp,
   Building2,
-  BellIcon,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -23,7 +22,6 @@ import {
   useLocation,
 } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUnreadCount } from "@/hooks/useNotifications";
 import { LIMITS } from "@/lib/utils/plan-limits";
 
 const navItems = [
@@ -31,7 +29,6 @@ const navItems = [
   { path: "/dashboard/upload", icon: Upload, label: "Upload Document" },
   { path: "/dashboard/documents", icon: FileText, label: "Documents" },
   { path: "/dashboard/settings", icon: Settings, label: "Settings" },
-  { path: "/dashboard/notifications", icon: BellIcon, label: "Bell" },
 ];
 
 interface CustomSidebarProps {
@@ -83,8 +80,6 @@ export function CustomSidebar({
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: unreadData } = useUnreadCount(!!user);
-  const unreadCount = unreadData?.count ?? 0;
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -164,22 +159,6 @@ export function CustomSidebar({
         </RouterLink>
 
         <div className="flex items-center gap-1">
-          {/* Notification Bell */}
-          {(isOpen || isMobileOpen) && (
-            <RouterLink
-              to="/dashboard/notifications"
-              className="relative p-1.5 rounded-lg hover:bg-accent transition-colors"
-              id="sidebar-notifications-bell"
-            >
-              <Bell className="w-4 h-4 text-muted-foreground" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-white leading-none">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
-              )}
-            </RouterLink>
-          )}
-
           {/* Desktop toggle button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -249,24 +228,6 @@ export function CustomSidebar({
             })}
           </nav>
         </div>
-
-        {/* Notification Bell (collapsed state) */}
-        {!isOpen && !isMobileOpen && (
-          <div className="mb-4 flex justify-center">
-            <RouterLink
-              to="/dashboard/notifications"
-              className="relative p-2 rounded-lg hover:bg-accent transition-colors"
-              id="sidebar-notifications-bell-collapsed"
-            >
-              <Bell className="w-5 h-5 text-muted-foreground" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-white leading-none">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-            </RouterLink>
-          </div>
-        )}
 
         {/* Plan & Usage Widget */}
         <div className="rounded-xl border bg-card p-4 space-y-3">

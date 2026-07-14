@@ -32,7 +32,7 @@ export function DocumentHeader({
         </Link>
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-gradient-to-br from-brand to-accent">
-            <FileText className="h-6 w-6 text-white" />
+            <FileText className="h-6 w-6 " />
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">

@@ -67,3 +67,11 @@ export const DocumentAnalysisSchema = z.object({
   created_at: z.string(),
 });
 export type DocumentAnalysis = z.infer<typeof DocumentAnalysisSchema>;
+export const UpcomingExpirationSchema = z.object({
+  id: z.string(),
+  fileName: z.string(),
+  expirationDate: z.string(), // The backend converts Date to ISOString
+  daysUntilExpiration: z.number(),
+});
+
+export type UpcomingExpiration = z.infer<typeof UpcomingExpirationSchema>;
