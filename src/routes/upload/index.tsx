@@ -41,6 +41,11 @@ import {
   Clock,
   AlertTriangle,
 } from "lucide-react";
+import { AnalysisOptionsForm } from "@/routes/documents/components/analysis-options-form";
+import {
+  AnalysisOptions,
+  DEFAULT_ANALYSIS_OPTIONS,
+} from "@/lib/types/analysis-options";
 
 const uploadFormSchema = z.object({
   file: z.instanceof(File, { message: "A PDF document is required" }),
@@ -66,6 +71,9 @@ export function UploadPage() {
   );
   // true when the AI analysis query completed successfully (controls button label)
   const [analysisCompleted, setAnalysisCompleted] = useState(false);
+  const [analysisOptions, setAnalysisOptions] = useState<AnalysisOptions>(
+    DEFAULT_ANALYSIS_OPTIONS,
+  );
 
   const form = useForm<UploadFormValues>({
     resolver: zodResolver(uploadFormSchema),
@@ -190,6 +198,7 @@ export function UploadPage() {
           queryText: values.prompt,
           userId: user?.id,
           documentId: documentResult.id,
+          options: analysisOptions,
         });
 
         // Only now do we mark as complete and show "View Analysis"
@@ -528,6 +537,7 @@ export function UploadPage() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
+                    className="space-y-6"
                   >
                     <FormField
                       control={form.control}
@@ -546,6 +556,13 @@ export function UploadPage() {
                           <FormMessage />
                         </FormItem>
                       )}
+                    />
+
+                    {/* Analysis Module Checkboxes */}
+                    <AnalysisOptionsForm
+                      value={analysisOptions}
+                      onChange={setAnalysisOptions}
+                      disabled={status !== "idle"}
                     />
                   </motion.div>
                 )}

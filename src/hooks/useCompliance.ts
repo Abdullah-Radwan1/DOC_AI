@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as endpoints from "@/lib/endpoints/analysis-endpoints";
 import { getComplianceQueriesByDocument } from "@/lib/endpoints/compliance_queries-endpoints.ts";
+import { AnalysisOptions } from "@/lib/types/analysis-options";
 
 export function useComplianceQueries(documentId: string) {
   return useQuery({
@@ -21,17 +22,19 @@ export function useAnalyzeDocument() {
       userId,
       guestId,
       documentId,
+      options,
     }: {
       queryText: string;
       userId?: string;
       guestId?: string;
       documentId: string;
+      options?: AnalysisOptions;
     }) => {
       return endpoints.analyzeDocument({
         queryText,
         userId,
-        guestId,
         documentId,
+        options,
       });
     },
     onSuccess: (_, variables) => {

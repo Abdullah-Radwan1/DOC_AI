@@ -28,6 +28,11 @@ import {
   FileSearch,
   FileWarning,
 } from "lucide-react";
+import { AnalysisOptionsForm } from "@/routes/documents/components/analysis-options-form";
+import {
+  AnalysisOptions,
+  DEFAULT_ANALYSIS_OPTIONS,
+} from "@/lib/types/analysis-options";
 
 // Map DocumentStatus from your schema
 type DocumentStatus =
@@ -96,6 +101,9 @@ export function AnalysisWorkflow() {
   const [isDragging, setIsDragging] = useState(false);
   const [compliancePrompt, setCompliancePrompt] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [analysisOptions, setAnalysisOptions] = useState<AnalysisOptions>(
+    DEFAULT_ANALYSIS_OPTIONS,
+  );
 
   // Polling for document status updates
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(
@@ -142,6 +150,7 @@ export function AnalysisWorkflow() {
           userId: user?.id,
           guestId: guestId || undefined,
           queryText: compliancePrompt,
+          options: analysisOptions,
         });
 
         setFiles((prev) =>
@@ -189,7 +198,7 @@ export function AnalysisWorkflow() {
         });
       }
     },
-    [user, compliancePrompt, navigate],
+    [user, compliancePrompt, analysisOptions, navigate],
   );
   // Start polling for a document
   const startPolling = useCallback(
@@ -558,6 +567,13 @@ export function AnalysisWorkflow() {
                 </div>
               </div>
             </div>
+
+            {/* Analysis Module Selection */}
+            <AnalysisOptionsForm
+              value={analysisOptions}
+              onChange={setAnalysisOptions}
+              disabled={isSubmitting || hasActiveFiles}
+            />
 
             {/* Analyze Button */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-border/50 bg-muted/20 p-4 shrink-0">

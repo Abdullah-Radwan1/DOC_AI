@@ -72,9 +72,13 @@ export function AppLayout() {
   const showSidebar =
     (isAuthenticated && location.startsWith("/dashboard")) ||
     (isAuthenticated &&
-      ["/upload", "/documents", "/documents/$documentId", "/settings", "/notifications"].includes(
-        location,
-      ));
+      [
+        "/upload",
+        "/documents",
+        "/documents/$documentId",
+        "/settings",
+        "/notifications",
+      ].includes(location));
 
   // Live notification data
   const { data: unreadData } = useUnreadCount(isAuthenticated);
@@ -113,17 +117,6 @@ export function AppLayout() {
                 >
                   <Menu className="w-5 h-5 text-muted-foreground" />
                 </button>
-
-                {/* Logo */}
-                <RouterLink to="/" className="flex items-center gap-3 min-w-0">
-                  <img
-                    src="/logo.png"
-                    className="w-6 h-6 text-primary-foreground"
-                  />
-                  <span className="text-lg font-bold tracking-tight text-foreground whitespace-nowrap overflow-hidden">
-                    DOCKY
-                  </span>
-                </RouterLink>
               </div>
             ) : (
               <div className="flex items-center gap-4">
@@ -152,7 +145,12 @@ export function AppLayout() {
                   {/* Notification Bell Dropdown */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="relative" id="notification-bell">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="relative"
+                        id="notification-bell"
+                      >
                         <Bell className="h-5 w-5" />
                         {unreadCount > 0 && (
                           <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full leading-none">
@@ -161,7 +159,10 @@ export function AppLayout() {
                         )}
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-80 bg-popover border">
+                    <DropdownMenuContent
+                      align="end"
+                      className="w-80 bg-popover border"
+                    >
                       <div className="flex items-center justify-between px-3 py-2">
                         <DropdownMenuLabel className="p-0 font-semibold">
                           Notifications

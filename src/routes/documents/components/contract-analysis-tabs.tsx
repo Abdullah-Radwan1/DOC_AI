@@ -19,6 +19,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { NotRequestedPlaceholder } from "./not-requested-placeholder";
 
 interface ContractAnalysisTabsProps {
   aiAnalysis: any;
@@ -40,14 +41,24 @@ export function ContractAnalysisTabs({
   itemVariants,
 }: ContractAnalysisTabsProps) {
   const source = aiAnalysis ?? analysis ?? {};
-  console.log(aiAnalysis);
-  const parties = source?.parties ?? [];
-  const obligations = source?.obligations ?? [];
-  const paymentTerms = source?.payment_terms ?? [];
-  const penalties = source?.penalties ?? [];
-  const renewalTerms = source?.renewal_terms ?? [];
-  const governingLaw = source?.governing_law ?? "";
-  const importantDates = source?.important_dates ?? [];
+  
+  // Options determine which sections were requested
+  const options = source?.analysisOptions ?? null;
+  const isSectionRequested = (key: string) => {
+    if (!options) return true; // Legacy analysis support
+    if (key === "clauses") {
+      return options.contract?.renewalTerms !== false;
+    }
+    return (options.contract as any)?.[key] !== false;
+  };
+
+  const parties = source?.contract?.parties ?? [];
+  const obligations = source?.contract?.obligations ?? [];
+  const paymentTerms = source?.contract?.paymentTerms ?? [];
+  const penalties = source?.contract?.penalties ?? [];
+  const renewalTerms = source?.contract?.renewalTerms ?? [];
+  const governingLaw = source?.contract?.governingLaw ?? "";
+  const importantDates = source?.contract?.importantDates ?? [];
 
   return (
     <motion.div variants={itemVariants}>
@@ -75,7 +86,9 @@ export function ContractAnalysisTabs({
             </TabsList>
 
             <TabsContent value="parties" className="mt-4">
-              {parties.length === 0 ? (
+              {!isSectionRequested("parties") ? (
+                <NotRequestedPlaceholder label="Parties Details" />
+              ) : parties.length === 0 ? (
                 <EmptyState text="No parties were extracted from this document." />
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
@@ -118,7 +131,9 @@ export function ContractAnalysisTabs({
             </TabsContent>
 
             <TabsContent value="obligations" className="mt-4">
-              {obligations.length === 0 ? (
+              {!isSectionRequested("obligations") ? (
+                <NotRequestedPlaceholder label="Obligations Details" />
+              ) : obligations.length === 0 ? (
                 <EmptyState text="No obligations were extracted from this document." />
               ) : (
                 <div className="space-y-3">
@@ -159,7 +174,9 @@ export function ContractAnalysisTabs({
             </TabsContent>
 
             <TabsContent value="payment" className="mt-4">
-              {paymentTerms.length === 0 ? (
+              {!isSectionRequested("paymentTerms") ? (
+                <NotRequestedPlaceholder label="Payment Terms" />
+              ) : paymentTerms.length === 0 ? (
                 <EmptyState text="No payment terms were extracted from this document." />
               ) : (
                 <div className="space-y-3">
@@ -202,7 +219,9 @@ export function ContractAnalysisTabs({
             </TabsContent>
 
             <TabsContent value="penalties" className="mt-4">
-              {penalties.length === 0 ? (
+              {!isSectionRequested("penalties") ? (
+                <NotRequestedPlaceholder label="Penalties" />
+              ) : penalties.length === 0 ? (
                 <EmptyState text="No penalties or breach consequences were extracted from this document." />
               ) : (
                 <div className="space-y-3">
@@ -249,67 +268,73 @@ export function ContractAnalysisTabs({
             </TabsContent>
 
             <TabsContent value="clauses" className="mt-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-lg border border-border/50 p-4">
-                  <div className="mb-3 flex items-center gap-3">
-                    <div className="rounded-lg bg-brand/10 p-2">
-                      <Scale className="h-5 w-5 text-brand" />
+              {!isSectionRequested("clauses") ? (
+                <NotRequestedPlaceholder label="Renewal & Termination Clauses" />
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="rounded-lg border border-border/50 p-4">
+                    <div className="mb-3 flex items-center gap-3">
+                      <div className="rounded-lg bg-brand/10 p-2">
+                        <Scale className="h-5 w-5 text-brand" />
+                      </div>
+                      <p className="font-medium">Governing Law</p>
                     </div>
-                    <p className="font-medium">Governing Law</p>
-                  </div>
 
-                  <p className="text-sm text-muted-foreground">
-                    {governingLaw || "No governing law clause extracted."}
-                  </p>
-                </div>
-
-                <div className="rounded-lg border border-border/50 p-4">
-                  <div className="mb-3 flex items-center gap-3">
-                    <div className="rounded-lg bg-yellow-500/10 p-2">
-                      <RefreshCw className="h-5 w-5 text-yellow-600" />
-                    </div>
-                    <p className="font-medium">Renewal Terms</p>
-                  </div>
-
-                  {renewalTerms.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
-                      No renewal terms extracted.
+                      {governingLaw || "No governing law clause extracted."}
                     </p>
-                  ) : (
-                    <div className="space-y-3">
-                      {renewalTerms.map((term: any, i: number) => (
-                        <div key={i} className="text-sm text-muted-foreground">
-                          <p className="font-medium text-foreground">
-                            {term.type || "Renewal clause"}
-                          </p>
-                          <p>Period: {term.period || "Not specified"}</p>
-                          <p>Notice: {term.notice_period || "Not specified"}</p>
-                          <p>
-                            Auto renew:{" "}
-                            {typeof term.auto_renew === "boolean"
-                              ? term.auto_renew
-                                ? "Yes"
-                                : "No"
-                              : "Not specified"}
-                          </p>
-                          {term.clauseReference && (
-                            <p className="text-xs">
-                              Clause: {term.clauseReference}
-                            </p>
-                          )}
-                          {term.pageNumber && (
-                            <p className="text-xs">Page: {term.pageNumber}</p>
-                          )}
-                        </div>
-                      ))}
+                  </div>
+
+                  <div className="rounded-lg border border-border/50 p-4">
+                    <div className="mb-3 flex items-center gap-3">
+                      <div className="rounded-lg bg-yellow-500/10 p-2">
+                        <RefreshCw className="h-5 w-5 text-yellow-600" />
+                      </div>
+                      <p className="font-medium">Renewal Terms</p>
                     </div>
-                  )}
+
+                    {renewalTerms.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        No renewal terms extracted.
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {renewalTerms.map((term: any, i: number) => (
+                          <div key={i} className="text-sm text-muted-foreground">
+                            <p className="font-medium text-foreground">
+                              {term.type || "Renewal clause"}
+                            </p>
+                            <p>Period: {term.period || "Not specified"}</p>
+                            <p>Notice: {term.noticePeriod || term.notice_period || "Not specified"}</p>
+                            <p>
+                              Auto renew:{" "}
+                              {typeof term.auto_renew === "boolean"
+                                ? term.auto_renew
+                                  ? "Yes"
+                                  : "No"
+                                : "Not specified"}
+                            </p>
+                            {term.clauseReference && (
+                              <p className="text-xs">
+                                Clause: {term.clauseReference}
+                              </p>
+                            )}
+                            {term.pageNumber && (
+                              <p className="text-xs">Page: {term.pageNumber}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </TabsContent>
 
             <TabsContent value="dates" className="mt-4">
-              {importantDates.length === 0 ? (
+              {!isSectionRequested("importantDates") ? (
+                <NotRequestedPlaceholder label="Important Dates" />
+              ) : importantDates.length === 0 ? (
                 <EmptyState text="No important dates were extracted from this document." />
               ) : (
                 <div className="space-y-3">
@@ -359,3 +384,4 @@ export function ContractAnalysisTabs({
     </motion.div>
   );
 }
+export default ContractAnalysisTabs;

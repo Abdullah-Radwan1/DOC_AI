@@ -10,11 +10,16 @@
     "cssVariables": true,
     "prefix": ""
   },
+  "iconLibrary": "radix",
   "aliases": {
     "components": "@/components",
     "utils": "@/lib/utils",
     "ui": "@/components/ui",
     "lib": "@/lib",
     "hooks": "@/hooks"
+  },
+  "registries": {
+    "@7ovr": "https://7ovr.com/r/{name}.json",
+    "@paddle": "https://developer.paddle.com/r/{name}.json"
   }
 }

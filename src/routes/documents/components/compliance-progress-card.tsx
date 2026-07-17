@@ -82,38 +82,41 @@ export function ComplianceProgressCard({
           <div className="space-y-4">
             <h4 className="font-medium">Regulatory Compliance</h4>
             <div className="grid md:grid-cols-2 gap-3">
-              {requirements.map((req: any, i: number) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-3 p-3 rounded-lg border border-border/50"
-                >
-                  <div
-                    className={`w-3 h-3 rounded-full mt-1 ${
-                      req.status === "Compliant"
-                        ? "bg-success"
-                        : req.status === "Not Applicable"
-                          ? "bg-slate-400"
-                          : "bg-warning"
-                    }`}
-                  />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">{req.regulation}</p>
-                      <Badge
-                        variant={
-                          req.status === "Compliant" ? "default" : "secondary"
-                        }
-                        className="text-xs"
-                      >
-                        {req.status}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {req.details}
-                    </p>
-                  </div>
-                </div>
-              ))}
+               {requirements.map((req: any, i: number) => {
+                 const status = String(req.status).toLowerCase();
+                 const isCompliant = status === "compliant" || status === "met";
+                 const isNotApplicable = status === "not applicable" || status === "unknown";
+                 return (
+                   <div
+                     key={i}
+                     className="flex items-start gap-3 p-3 rounded-lg border border-border/50"
+                   >
+                     <div
+                       className={`w-3 h-3 rounded-full mt-1 ${
+                         isCompliant
+                           ? "bg-success"
+                           : isNotApplicable
+                             ? "bg-slate-400"
+                             : "bg-warning"
+                       }`}
+                     />
+                     <div>
+                       <div className="flex items-center gap-2">
+                         <p className="text-sm font-medium">{req.requirement || req.regulation}</p>
+                         <Badge
+                           variant={isCompliant ? "default" : "secondary"}
+                           className="text-xs capitalize"
+                         >
+                           {req.status}
+                         </Badge>
+                       </div>
+                       <p className="text-xs text-muted-foreground mt-1">
+                         {req.reason || req.details}
+                       </p>
+                     </div>
+                   </div>
+                 );
+               })}
             </div>
           </div>
         </CardContent>

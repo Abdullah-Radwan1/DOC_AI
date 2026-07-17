@@ -27,9 +27,10 @@ export function MissingClausesCard({
         <CardContent>
           <div className="space-y-3">
             {clauses.map((clause: any, i: number) => {
+              const severity = clause.importance || clause.severity || "medium";
               const colors =
                 severityColors[
-                  clause.severity as keyof typeof severityColors
+                  severity as keyof typeof severityColors
                 ] || severityColors.medium;
               return (
                 <div
@@ -42,10 +43,10 @@ export function MissingClausesCard({
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <p className="font-medium">{clause.name}</p>
-                      <Badge variant={colors.badge}>{clause.severity}</Badge>
+                      <Badge variant={colors.badge}>{severity}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {clause.recommendation}
+                      {clause.reason || clause.recommendation}
                     </p>
                   </div>
                 </div>

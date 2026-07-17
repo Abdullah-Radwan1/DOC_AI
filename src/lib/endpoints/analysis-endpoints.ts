@@ -1,4 +1,5 @@
 import { api } from "../api";
+import { AnalysisOptions } from "../types/analysis-options";
 
 export async function getDocumentAnalysis(
   documentId: string,
@@ -40,68 +41,75 @@ export async function getDocumentAnalysis(
 
   const summary = analysisResult?.summary ?? aiPayload?.summary ?? null;
 
+  // Direct answer to whatever the user asked (or a brief orientation if
+  // nothing was asked). Kept separate from `summary` — never merged into
+  // the structured analysis fields below.
+  const answer = analysisResult?.answer ?? aiPayload?.answer ?? null;
+
+  // The user's original question, if any, so the UI can label the answer
+  // card accordingly ("Your Answer" vs a generic default).
+  const queryText = latestQuery?.queryText ?? latestQuery?.query_text ?? null;
+
   return {
     id: analysisResult?.id ?? responseWrapper?.id ?? latestQuery?.id ?? null,
-
+    /** The AnalysisRequest.id — used by the chat component as context. */
+    analysisRequestId: latestQuery?.id ?? null,
+    queryText,
     summary,
-    executive_summary: summary,
+    answer,
+    analysisOptions: responseWrapper?.metadata?.options ?? null,
 
-    overallVerdict:
-      analysisResult?.overallVerdict ?? aiPayload?.overallVerdict ?? null,
-
-    confidence: analysisResult?.confidence ?? aiPayload?.confidence ?? null,
-
-    riskLevel: analysisResult?.riskLevel ?? aiPayload?.riskLevel ?? null,
-
-    findings: Array.isArray(analysisResult?.findings)
-      ? analysisResult.findings
-      : Array.isArray(aiPayload?.findings)
-        ? aiPayload.findings
+    contract: {
+      expirationDate: aiPayload?.contract?.expirationDate ?? null,
+      parties: Array.isArray(aiPayload?.contract?.parties)
+        ? aiPayload.contract.parties
         : [],
-
-    // structured contract data should come from the raw AI payload
-    parties: Array.isArray(aiPayload?.parties) ? aiPayload.parties : [],
-
-    obligations: Array.isArray(aiPayload?.obligations)
-      ? aiPayload.obligations
-      : [],
-
-    payment_terms: Array.isArray(aiPayload?.paymentTerms)
-      ? aiPayload.paymentTerms
-      : Array.isArray(aiPayload?.payment_terms)
-        ? aiPayload.payment_terms
+      obligations: Array.isArray(aiPayload?.contract?.obligations)
+        ? aiPayload.contract.obligations
         : [],
-
-    penalties: Array.isArray(aiPayload?.penalties) ? aiPayload.penalties : [],
-
-    renewal_terms: Array.isArray(aiPayload?.renewalTerms)
-      ? aiPayload.renewalTerms
-      : Array.isArray(aiPayload?.renewal_terms)
-        ? aiPayload.renewal_terms
+      paymentTerms: Array.isArray(aiPayload?.contract?.paymentTerms)
+        ? aiPayload.contract.paymentTerms
         : [],
-
-    termination_terms:
-      aiPayload?.terminationTerms ?? aiPayload?.termination_terms ?? null,
-
-    governing_law: aiPayload?.governingLaw ?? aiPayload?.governing_law ?? null,
-
-    important_dates: Array.isArray(aiPayload?.importantDates)
-      ? aiPayload.importantDates
-      : Array.isArray(aiPayload?.important_dates)
-        ? aiPayload.important_dates
+      penalties: Array.isArray(aiPayload?.contract?.penalties)
+        ? aiPayload.contract.penalties
         : [],
-
-    missing_clauses: Array.isArray(aiPayload?.missingClauses)
-      ? aiPayload.missingClauses
-      : Array.isArray(aiPayload?.missing_clauses)
-        ? aiPayload.missing_clauses
+      renewalTerms: Array.isArray(aiPayload?.contract?.renewalTerms)
+        ? aiPayload.contract.renewalTerms
         : [],
-
-    compliance_requirements: Array.isArray(aiPayload?.complianceRequirements)
-      ? aiPayload.complianceRequirements
-      : Array.isArray(aiPayload?.compliance_requirements)
-        ? aiPayload.compliance_requirements
+      terminationTerms: aiPayload?.contract?.terminationTerms ?? null,
+      governingLaw: aiPayload?.contract?.governingLaw ?? null,
+      importantDates: Array.isArray(aiPayload?.contract?.importantDates)
+        ? aiPayload.contract.importantDates
         : [],
+      missingClauses: Array.isArray(aiPayload?.contract?.missingClauses)
+        ? aiPayload.contract.missingClauses
+        : [],
+    },
+
+    compliance: {
+      overallVerdict:
+        analysisResult?.overallVerdict ??
+        aiPayload?.compliance?.overallVerdict ??
+        null,
+      confidence:
+        analysisResult?.confidence ?? aiPayload?.compliance?.confidence ?? null,
+      riskLevel:
+        analysisResult?.riskLevel ?? aiPayload?.compliance?.riskLevel ?? null,
+      summary: aiPayload?.compliance?.summary ?? {
+        passed: 0,
+        failed: 0,
+        partial: 0,
+        unknown: 0,
+      },
+      requirements: Array.isArray(aiPayload?.compliance?.requirements)
+        ? aiPayload.compliance.requirements
+        : [],
+      findings: Array.isArray(analysisResult?.findings)
+        ? analysisResult.findings
+        : Array.isArray(aiPayload?.compliance?.findings)
+          ? aiPayload.compliance.findings
+          : [],
+    },
 
     rawQueries,
     rawAiResponse: aiPayload,
@@ -113,15 +121,18 @@ export async function analyzeDocument({
   documentId,
   userId,
   queryText,
+  options,
 }: {
   documentId: string;
   userId?: string;
   queryText: string;
+  options?: AnalysisOptions;
 }): Promise<any> {
   const { data } = await api.post("/compliance/analyze", {
     documentId,
     userId,
     queryText,
+    options,
   });
   return data;
 }

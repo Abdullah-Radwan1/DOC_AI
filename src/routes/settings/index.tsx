@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfilePreferences } from "@/hooks/useProfilePreferences";
+import { usePaddle } from "@/hooks/use-paddle";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateProfile, changePassword } from "@/lib/endpoints/user-endpoints";
 import { toast } from "sonner";
@@ -55,7 +56,7 @@ const plans = [
   {
     id: "professional",
     name: "Professional",
-    price: 29,
+    price: 10,
     yearlyPrice: 24,
     description: "For professionals who need comprehensive analysis",
     features: [
@@ -101,6 +102,7 @@ const itemVariants = {
 export function SettingsPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { openCheckout } = usePaddle();
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(
     "monthly",
   );
@@ -196,6 +198,18 @@ export function SettingsPage() {
       newPassword,
       confirmPassword,
     });
+  };
+
+  const handleUpgrade = (planId: string) => {
+    if (planId === "professional") {
+      openCheckout("professional", user?.email);
+      return;
+    }
+
+    if (planId === "enterprise") {
+      openCheckout("enterprise", user?.email);
+      return;
+    }
   };
 
   return (
@@ -376,17 +390,20 @@ export function SettingsPage() {
                       <Button variant="outline" className="w-full" disabled>
                         Current Plan
                       </Button>
-                    ) : plan.price === null ? (
-                      <Button variant="outline" className="w-full">
-                        Contact Sales
-                        <Mail className="ml-2 h-4 w-4" />
-                      </Button>
                     ) : (
                       <Button
                         className={`w-full ${plan.popular ? "bg-gradient-to-r from-brand to-accent hover:from-brand-dark hover:to-accent" : ""}`}
+                        onClick={() => handleUpgrade(plan.id)}
                       >
                         {plan.popular && <Sparkles className="mr-2 h-4 w-4" />}
-                        Upgrade to {plan.name}
+                        {plan.price === null ? (
+                          <>
+                            Contact Sales
+                            <Mail className="ml-2 h-4 w-4" />
+                          </>
+                        ) : (
+                          <>Upgrade to {plan.name}</>
+                        )}
                       </Button>
                     )}
                   </CardFooter>
