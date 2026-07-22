@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { NotificationPreferencesSchema } from "./notification_types";
 
-export const PlanTypeSchema = z.enum(["free", "growth", "enterprise"]);
+export const PlanTypeSchema = z.enum(["free", "Professional", "Elite"]);
 
 export const UsageQuotaSchema = z.object({
   uploads_used: z.number(),
@@ -26,6 +26,7 @@ export const UserSchema = z.object({
   updated_at: z.string().optional(),
   notification_preferences: NotificationPreferencesSchema.optional(),
   plan: PlanTypeSchema.optional(),
+  billing_cycle: z.enum(["monthly", "yearly"]).optional(),
   usage_quota: UsageQuotaSchema.optional(),
 });
 export type User = z.infer<typeof UserSchema>;

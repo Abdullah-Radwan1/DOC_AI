@@ -29,11 +29,13 @@ export function useProfilePreferences() {
         allowAnalysisAlerts: preferences.allow_analysis_alerts,
       });
 
+      console.log(updatedUser);
       return {
         user: updatedUser,
         preferences,
       };
     },
+
     onSuccess: ({ user, preferences }) => {
       queryClient.setQueryData(["auth", "me"], { user });
       queryClient.setQueryData(profilePreferenceKeys.details(), preferences);

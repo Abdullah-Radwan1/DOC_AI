@@ -10,6 +10,12 @@ export interface ContractSectionOptions {
 export interface AnalysisOptions {
   contract: ContractSectionOptions;
   missingClauses: boolean;
+  /**
+   * Optional list of specific clause names the user wants to check for.
+   * When provided alongside missingClauses: true, the AI focuses on these
+   * specific clauses rather than doing a generic scan.
+   */
+  specificMissingClauses?: string[];
   recommendations: boolean;
   compliance: boolean;
 }

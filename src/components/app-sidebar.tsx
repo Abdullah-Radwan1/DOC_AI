@@ -20,6 +20,7 @@ import {
   useNavigate,
   Link as RouterLink,
   useLocation,
+  Link,
 } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { LIMITS } from "@/lib/utils/plan-limits";
@@ -40,9 +41,9 @@ interface CustomSidebarProps {
 
 function PlanIcon({ plan }: { plan?: string }) {
   switch (plan) {
-    case "growth":
+    case "Professional":
       return <TrendingUp className="w-3 h-3" />;
-    case "enterprise":
+    case "elite":
       return <Building2 className="w-3 h-3" />;
     default:
       return <Sparkles className="w-3 h-3" />;
@@ -51,10 +52,10 @@ function PlanIcon({ plan }: { plan?: string }) {
 
 function getPlanLabel(plan?: string) {
   switch (plan) {
-    case "growth":
-      return "Growth";
-    case "enterprise":
-      return "Enterprise";
+    case "Professional":
+      return "Professional";
+    case "Elite":
+      return "Elite";
     default:
       return "Free";
   }
@@ -62,9 +63,9 @@ function getPlanLabel(plan?: string) {
 
 function getPlanColor(plan?: string) {
   switch (plan) {
-    case "growth":
+    case "Professional":
       return "text-brand bg-brand/10";
-    case "enterprise":
+    case "Elite":
       return "text-violet-500 bg-violet-500/10";
     default:
       return "text-muted-foreground bg-muted";
@@ -130,21 +131,16 @@ export function CustomSidebar({
   };
 
   // ── Plan & quota data ──────────────────────────────────────────────────────
-  const plan = user?.plan ?? "free";
+  const plan = user?.plan;
+  console.log(plan);
   const uploadsUsed = user?.usage_quota?.uploads_used ?? 0;
   const analysesUsed = user?.usage_quota?.analyses_used ?? 0;
-  const planKey = plan.toUpperCase() as keyof typeof LIMITS;
-  const uploadLimit = LIMITS[planKey]?.UPLOADS ?? LIMITS.FREE.UPLOADS;
-  const analysisLimit = LIMITS[planKey]?.ANALYSES ?? LIMITS.FREE.ANALYSES;
-  const isUnlimited = uploadLimit === -1;
-  const uploadPct = isUnlimited
-    ? 100
-    : Math.min(100, (uploadsUsed / uploadLimit) * 100);
-  const analysisPct = isUnlimited
-    ? 100
-    : Math.min(100, (analysesUsed / analysisLimit) * 100);
+  const planKey = plan as keyof typeof LIMITS;
+  const uploadLimit = LIMITS[planKey]?.UPLOADS ?? LIMITS.Free.UPLOADS;
+  const analysisLimit = LIMITS[planKey]?.ANALYSES ?? LIMITS.Free.ANALYSES;
+  const uploadPct = Math.min(100, (uploadsUsed / uploadLimit) * 100);
+  const analysisPct = Math.min(100, (analysesUsed / analysisLimit) * 100);
   const isFreePlan = plan === "free";
-
   const sidebarContent = (
     <>
       {/* Header */}
@@ -251,21 +247,19 @@ export function CustomSidebar({
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">Uploads</span>
                   <span className="font-medium text-foreground">
-                    {isUnlimited
-                      ? `${uploadsUsed} / ∞`
-                      : `${uploadsUsed} / ${uploadLimit}`}
+                    {`${uploadsUsed} / ${uploadLimit}`}
                   </span>
                 </div>
                 <div className="w-full h-1.5 rounded-full bg-secondary overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-700 ${
-                      !isUnlimited && uploadPct >= 100
+                      uploadPct >= 100
                         ? "bg-destructive"
-                        : !isUnlimited && uploadPct >= 75
+                        : uploadPct >= 75
                           ? "bg-warning"
                           : "bg-foreground"
                     }`}
-                    style={{ width: `${isUnlimited ? 30 : uploadPct}%` }}
+                    style={{ width: `${uploadPct}%` }}
                   />
                 </div>
               </div>
@@ -275,34 +269,33 @@ export function CustomSidebar({
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">Analyses</span>
                   <span className="font-medium text-foreground">
-                    {isUnlimited
-                      ? `${analysesUsed} / ∞`
-                      : `${analysesUsed} / ${analysisLimit}`}
+                    {`${analysesUsed} / ${analysisLimit}`}
                   </span>
                 </div>
                 <div className="w-full h-1.5 rounded-full bg-secondary overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-700 ${
-                      !isUnlimited && analysisPct >= 100
+                      analysisPct >= 100
                         ? "bg-destructive"
-                        : !isUnlimited && analysisPct >= 75
+                        : analysisPct >= 75
                           ? "bg-warning"
                           : "bg-foreground"
                     }`}
-                    style={{ width: `${isUnlimited ? 30 : analysisPct}%` }}
+                    style={{ width: `${analysisPct}%` }}
                   />
                 </div>
               </div>
 
               {/* Upgrade CTA for free plan */}
               {isFreePlan && (
-                <button
+                <Link
+                  to="/dashboard/settings"
                   className="flex items-center gap-2 text-xs font-medium text-foreground hover:opacity-80 transition-colors"
                   type="button"
                 >
                   <Crown className="w-3 h-3" />
                   Upgrade to Pro
-                </button>
+                </Link>
               )}
             </div>
           ) : (

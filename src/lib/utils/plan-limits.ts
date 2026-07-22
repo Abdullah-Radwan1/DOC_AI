@@ -7,16 +7,16 @@ export const LIMITS = {
     UPLOADS: 1,
     ANALYSES: 1,
   },
-  FREE: {
+  Free: {
     UPLOADS: 3,
     ANALYSES: 3,
   },
-  GROWTH: {
-    UPLOADS: -1, // Unlimited
-    ANALYSES: -1,
+  Professional: {
+    UPLOADS: 10, // Unlimited
+    ANALYSES: 10,
   },
-  ENTERPRISE: {
-    UPLOADS: -1,
-    ANALYSES: -1,
+  Elite: {
+    UPLOADS: 50,
+    ANALYSES: 50,
   },
 } as const;

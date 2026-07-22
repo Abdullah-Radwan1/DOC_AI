@@ -27,6 +27,7 @@ export function mapUser(raw: any): User {
         raw.allowAnalysisAlerts ?? raw.allow_analysis_alerts ?? true,
     },
     plan: raw.plan,
+    billing_cycle: raw.billingCycle ?? raw.billing_cycle,
     usage_quota: raw.usage_quota ? {
       uploads_used: raw.usage_quota.uploadsUsed ?? raw.usage_quota.uploads_used ?? 0,
       analyses_used: raw.usage_quota.analysesUsed ?? raw.usage_quota.analyses_used ?? 0,
@@ -47,6 +48,7 @@ export interface UpdateProfilePayload {
   allowExpiryReminders?: boolean;
   allowRiskAlerts?: boolean;
   allowAnalysisAlerts?: boolean;
+  plan?: string;
 }
 
 export async function updateProfile(
