@@ -6,12 +6,12 @@ export function CTASection() {
     <section className="mx-auto max-w-5xl rounded-3xl border border-brand/15 bg-gradient-to-br from-brand/5 via-card to-accent/5 p-8 text-center sm:p-12">
       <div className="mx-auto max-w-2xl space-y-4">
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          Need history, team workspaces, and audit visibility?
+          Track Your Documents & Stay Ahead of Compliance Risks
         </h2>
         <p className="text-sm leading-7 text-muted-foreground sm:text-base">
-          Create an account to save analyses, manage uploaded documents, review
-          previous compliance runs, and build a structured internal review
-          workflow.
+          Create a free account to unlock deep document analysis, save complete
+          audit histories, and set up custom alert preferences for instant
+          updates.
         </p>
       </div>
 
@@ -21,7 +21,7 @@ export function CTASection() {
           className="bg-gradient-to-r from-brand to-accent hover:from-brand-dark hover:to-accent"
           asChild
         >
-          <Link to="/register">Create Free Account</Link>
+          <Link to="/register">Create Account</Link>
         </Button>
 
         <Button variant="outline" size="lg" asChild>

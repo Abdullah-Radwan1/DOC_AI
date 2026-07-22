@@ -35,7 +35,12 @@ export function AnalysisConfigSection({
               <div className="flex h-8 border w-8 items-center justify-center rounded-full bg-brand font-bold shadow-sm shrink-0">
                 1
               </div>
-              <h3 className="text-lg font-semibold">Analysis Prompt</h3>
+              <h3 className="text-lg font-semibold">
+                Analysis Prompt
+                <span className="normal-case text-sm font-normal opacity-70 ml-0.5">
+                  (optional)
+                </span>
+              </h3>
             </div>
             <div className="space-y-3 flex flex-col flex-1 justify-between">
               <div className="space-y-2">

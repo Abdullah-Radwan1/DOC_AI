@@ -31,7 +31,7 @@ export function SpecificClausesInput({
         if (value.length >= 5) return;
 
         const isDuplicate = value.some(
-          (clause) => clause.toLowerCase() === trimmed.toLowerCase()
+          (clause) => clause.toLowerCase() === trimmed.toLowerCase(),
         );
         if (isDuplicate) {
           setInputText("");
@@ -42,14 +42,14 @@ export function SpecificClausesInput({
         setInputText("");
       }
     },
-    [inputText, value, onChange]
+    [inputText, value, onChange],
   );
 
   const handleRemove = useCallback(
     (indexToRemove: number) => {
       onChange(value.filter((_, idx) => idx !== indexToRemove));
     },
-    [value, onChange]
+    [value, onChange],
   );
 
   return (
@@ -72,7 +72,7 @@ export function SpecificClausesInput({
                   className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide"
                 >
                   Specific Clauses to Check{" "}
-                  <span className="normal-case font-normal opacity-70">
+                  <span className="normal-case text-sm font-normal opacity-70">
                     (optional)
                   </span>
                 </Label>

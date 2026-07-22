@@ -125,7 +125,7 @@ export async function analyzeDocument({
 }: {
   documentId: string;
   userId?: string;
-  queryText: string;
+  queryText?: string;
   options?: AnalysisOptions;
 }): Promise<any> {
   const { data } = await api.post("/compliance/analyze", {

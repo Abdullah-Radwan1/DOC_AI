@@ -95,8 +95,11 @@ export function AnalysisWorkflow() {
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand border font-bold shadow-sm">
                       3
                     </div>
-                    <h3 className="text-lg font-semibold">
-                      Compliance Prompt (Optional)
+                    <h3 className="text-lg font-semibold ">
+                      Compliance Prompt
+                      <span className="normal-case text-sm font-normal opacity-70 ml-0.5">
+                        (optional)
+                      </span>
                     </h3>
                   </div>
 
