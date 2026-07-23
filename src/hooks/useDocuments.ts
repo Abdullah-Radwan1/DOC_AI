@@ -3,10 +3,11 @@ import * as documentEndpoints from "@/lib/endpoints/document-endpoints";
 import * as dashboardEndpoints from "@/lib/endpoints/dashboard-endpoints";
 import * as analysisEndpoints from "@/lib/endpoints/analysis-endpoints";
 import type { ActivityLogItem } from "@/lib/types/activity_types";
+import { queryKeys } from "@/lib/query-keys";
 
 export function useDocuments(params?: documentEndpoints.DocumentQueryParams) {
   return useQuery({
-    queryKey: ["documents", params],
+    queryKey: queryKeys.documents.list(params),
     queryFn: async () => {
       return documentEndpoints.getDocuments(params);
     },
@@ -15,7 +16,7 @@ export function useDocuments(params?: documentEndpoints.DocumentQueryParams) {
 
 export function useDocument(documentId: string) {
   return useQuery({
-    queryKey: ["document", documentId],
+    queryKey: queryKeys.documents.byId(documentId),
     queryFn: async () => {
       return documentEndpoints.getDocumentById(documentId);
     },
@@ -25,7 +26,7 @@ export function useDocument(documentId: string) {
 
 export function useDocumentAnalysis(_documentId: string) {
   return useQuery({
-    queryKey: ["analysis", _documentId],
+    queryKey: queryKeys.documents.analysis(_documentId),
     queryFn: async () => {
       if (!_documentId) return null;
       return analysisEndpoints.getDocumentAnalysis(_documentId);
@@ -36,14 +37,14 @@ export function useDocumentAnalysis(_documentId: string) {
 
 export function useActivityLog(_limit = 10) {
   return useQuery({
-    queryKey: ["activity"],
+    queryKey: queryKeys.activity.list(),
     queryFn: async (): Promise<ActivityLogItem[]> => [],
   });
 }
 
 export function useDashboardStats() {
   return useQuery({
-    queryKey: ["dashboard-stats"],
+    queryKey: queryKeys.dashboard.stats(),
     queryFn: async () => {
       try {
         return dashboardEndpoints.getDashboardStats();
@@ -70,10 +71,10 @@ export function useUploadDocument() {
       return documentEndpoints.uploadDocument({ userId, file });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["documents"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.documents.list() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() });
     },
   });
 }
@@ -86,8 +87,8 @@ export function useDeleteDocument() {
       await documentEndpoints.deleteDocument(documentId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["documents"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.documents.list() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
     },
   });
 }

@@ -30,6 +30,7 @@ import { NotificationsPage } from "@/routes/notifications";
 
 import { getCurrentUser } from "@/lib/endpoints/auth-endpoints";
 import type { User } from "@/lib/schemas";
+import { queryKeys } from "@/lib/query-keys";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,15 +55,14 @@ const rootRoute = createRootRoute({
 const requireNoAuth = async () => {
   let isAuthenticated = false;
   try {
-    const cached = queryClient.getQueryData<{ user: User | null }>([
-      "auth",
-      "me",
-    ]);
+    const cached = queryClient.getQueryData<{ user: User | null }>(
+      queryKeys.auth.me()
+    );
     if (cached?.user) {
       isAuthenticated = true;
     } else {
       const data = await queryClient.fetchQuery({
-        queryKey: ["auth", "me"],
+        queryKey: queryKeys.auth.me(),
         queryFn: async () => {
           const user = await getCurrentUser();
           return { user };
@@ -82,16 +82,15 @@ const requireAuth = async () => {
   let isAuthenticated = false;
   try {
     // 1. Check if user data is already cached
-    const cached = queryClient.getQueryData<{ user: User | null }>([
-      "auth",
-      "me",
-    ]);
+    const cached = queryClient.getQueryData<{ user: User | null }>(
+      queryKeys.auth.me()
+    );
     if (cached?.user) {
       isAuthenticated = true;
     } else {
       // 2. Fetch if not cached (handles hard refreshes)
       const data = await queryClient.fetchQuery({
-        queryKey: ["auth", "me"],
+        queryKey: queryKeys.auth.me(),
         queryFn: async () => {
           const user = await getCurrentUser();
           return { user };

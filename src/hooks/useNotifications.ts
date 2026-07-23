@@ -7,15 +7,7 @@ import {
   type NotificationQueryParams,
 } from "@/lib/endpoints/notifications-endpoints";
 import type { AppNotification } from "@/lib/types/notification_types";
-
-// ─── Query Keys ──────────────────────────────────────────────────────────────
-
-export const notificationKeys = {
-  all: ["notifications"] as const,
-  list: (params?: NotificationQueryParams) =>
-    [...notificationKeys.all, "list", params] as const,
-  unreadCount: () => [...notificationKeys.all, "unread-count"] as const,
-};
+import { queryKeys } from "@/lib/query-keys";
 
 // ─── Hooks ───────────────────────────────────────────────────────────────────
 
@@ -24,7 +16,7 @@ export const notificationKeys = {
  */
 export function useNotifications(params?: NotificationQueryParams) {
   return useQuery({
-    queryKey: notificationKeys.list(params),
+    queryKey: queryKeys.notifications.list(params),
     queryFn: () => getMyNotifications(params),
     staleTime: 1000 * 30, // 30 seconds
   });
@@ -36,7 +28,7 @@ export function useNotifications(params?: NotificationQueryParams) {
  */
 export function useUnreadCount(enabled = true) {
   return useQuery({
-    queryKey: notificationKeys.unreadCount(),
+    queryKey: queryKeys.notifications.unreadCount(),
     queryFn: getUnreadCount,
     staleTime: 1000 * 30,
     refetchInterval: 1000 * 60, // poll every 60 s
@@ -54,10 +46,10 @@ export function useMarkRead() {
     mutationFn: (id: string) => markNotificationRead(id),
     onMutate: async (id) => {
       // Optimistically mark as read across all cached list queries
-      await queryClient.cancelQueries({ queryKey: notificationKeys.all });
+      await queryClient.cancelQueries({ queryKey: queryKeys.notifications.all() });
 
       queryClient.setQueriesData(
-        { queryKey: notificationKeys.all },
+        { queryKey: queryKeys.notifications.all() },
         (old: any) => {
           if (!old?.data) return old;
           return {
@@ -70,7 +62,7 @@ export function useMarkRead() {
       );
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all() });
     },
   });
 }
@@ -84,10 +76,10 @@ export function useMarkAllRead() {
   return useMutation({
     mutationFn: markAllNotificationsRead,
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: notificationKeys.all });
+      await queryClient.cancelQueries({ queryKey: queryKeys.notifications.all() });
 
       queryClient.setQueriesData(
-        { queryKey: notificationKeys.all },
+        { queryKey: queryKeys.notifications.all() },
         (old: any) => {
           if (!old?.data) return old;
           return {
@@ -101,7 +93,7 @@ export function useMarkAllRead() {
       );
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all() });
     },
   });
 }

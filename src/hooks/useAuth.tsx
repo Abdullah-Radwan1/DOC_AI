@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as endpoints from "@/lib/endpoints/auth-endpoints";
 import type { User, UserRole } from "@/lib/types/user_types";
+import { queryKeys } from "@/lib/query-keys";
 
 interface AuthContextType {
   user: User | null;
@@ -23,7 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Use React Query to fetch the current user from /auth/me
   // The JWT cookie is sent automatically via `credentials: 'include'` in the axios client
   const { data: userResponse, isLoading } = useQuery({
-    queryKey: ["auth", "me"],
+    queryKey: queryKeys.auth.me(),
     queryFn: async () => {
       const user = await endpoints.getCurrentUser();
       return { user };
@@ -42,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const user = await endpoints.login(email, password);
       // Seed query cache so components re-render immediately
-      queryClient.setQueryData(["auth", "me"], { user });
+      queryClient.setQueryData(queryKeys.auth.me(), { user });
       return { error: null };
     } catch (error: unknown) {
       const msg = (error as any)?.response?.data?.message ?? "Login failed";
@@ -53,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
       const user = await endpoints.register(email, password, fullName);
-      queryClient.setQueryData(["auth", "me"], { user });
+      queryClient.setQueryData(queryKeys.auth.me(), { user });
       return { error: null };
     } catch (error: unknown) {
       const msg =
@@ -68,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // Swallow – we always clear local state
     } finally {
-      queryClient.setQueryData(["auth", "me"], null);
+      queryClient.setQueryData(queryKeys.auth.me(), null);
       queryClient.clear();
       window.location.href = "/login";
     }

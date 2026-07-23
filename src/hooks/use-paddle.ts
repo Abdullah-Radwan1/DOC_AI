@@ -3,7 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import { initializePaddle, type Paddle } from "@paddle/paddle-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { createCheckout, syncSubscription } from "../lib/endpoints/billing-endpoints";
+import { createCheckout } from "../lib/endpoints/billing-endpoints";
+import { queryKeys } from "@/lib/query-keys";
 
 type CheckoutPlan = "Professional" | "Elite";
 type BillingPeriod = "monthly" | "yearly";
@@ -28,18 +29,30 @@ export function usePaddle() {
       token: token,
       eventCallback: async (event) => {
         if (event.name === "checkout.completed") {
-          const transactionId = event.data?.transaction_id;
-          if (transactionId) {
-            const toastId = toast.loading("Syncing your subscription plan...");
-            try {
-              await syncSubscription(transactionId);
-              toast.success("Subscription activated successfully!", { id: toastId });
-              // Invalidate auth query to refresh user plan immediately in frontend UI
-              await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-            } catch (err) {
-              console.error("Sync error:", err);
-              toast.error("Failed to sync subscription status with backend.", { id: toastId });
-            }
+          const toastId = toast.loading("Updating your subscription...");
+
+          try {
+            // Wait 3 seconds to allow the backend to process the Paddle webhook
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+
+            await queryClient.invalidateQueries({
+              queryKey: queryKeys.auth.me(),
+            });
+
+            // Re-fetch again after a short delay just in case the webhook was delayed
+            setTimeout(() => {
+              queryClient.invalidateQueries({
+                queryKey: queryKeys.auth.me(),
+              });
+            }, 4000);
+
+            toast.success("Subscription activated!", {
+              id: toastId,
+            });
+          } catch (err) {
+            toast.error("Failed to refresh your account.", {
+              id: toastId,
+            });
           }
         }
       },

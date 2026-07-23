@@ -5,17 +5,13 @@ import {
 } from "@/lib/endpoints/user-endpoints";
 import type { NotificationPreferences } from "@/lib/schemas";
 import { toast } from "sonner";
-
-export const profilePreferenceKeys = {
-  all: ["profile-preferences"] as const,
-  details: () => [...profilePreferenceKeys.all, "details"] as const,
-};
+import { queryKeys } from "@/lib/query-keys";
 
 export function useProfilePreferences() {
   const queryClient = useQueryClient();
 
   const query = useQuery<NotificationPreferences>({
-    queryKey: profilePreferenceKeys.details(),
+    queryKey: queryKeys.profilePreferences.details(),
     queryFn: getMyPreferences,
     staleTime: 1000 * 60 * 5,
   });
@@ -37,8 +33,8 @@ export function useProfilePreferences() {
     },
 
     onSuccess: ({ user, preferences }) => {
-      queryClient.setQueryData(["auth", "me"], { user });
-      queryClient.setQueryData(profilePreferenceKeys.details(), preferences);
+      queryClient.setQueryData(queryKeys.auth.me(), { user });
+      queryClient.setQueryData(queryKeys.profilePreferences.details(), preferences);
       toast.success("Notification preferences updated.");
     },
     onError: (error: unknown) => {

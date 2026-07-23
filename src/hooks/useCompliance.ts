@@ -2,10 +2,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as endpoints from "@/lib/endpoints/analysis-endpoints";
 import { getComplianceQueriesByDocument } from "@/lib/endpoints/compliance_queries-endpoints.ts";
 import { AnalysisOptions } from "@/lib/types/analysis-options";
+import { queryKeys } from "@/lib/query-keys";
 
 export function useComplianceQueries(documentId: string) {
   return useQuery({
-    queryKey: ["compliance", "document", documentId],
+    queryKey: queryKeys.compliance.byDocument(documentId),
     queryFn: async () => {
       return getComplianceQueriesByDocument(documentId);
     },
@@ -40,10 +41,10 @@ export function useAnalyzeDocument() {
     onSuccess: (_, variables) => {
       if (variables.documentId) {
         queryClient.invalidateQueries({
-          queryKey: ["compliance", "document", variables.documentId],
+          queryKey: queryKeys.compliance.byDocument(variables.documentId),
         });
         queryClient.invalidateQueries({
-          queryKey: ["analysis", variables.documentId],
+          queryKey: queryKeys.documents.analysis(variables.documentId),
         });
       }
     },

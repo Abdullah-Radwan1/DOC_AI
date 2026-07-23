@@ -16,6 +16,7 @@ import { cancelSubscription } from "@/lib/endpoints/billing-endpoints";
 import { LIMITS } from "@/lib/utils/plan-limits";
 import { Check, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { queryKeys } from "@/lib/query-keys";
 
 const formatLimit = (limit: number) =>
   limit === -1 ? "Unlimited" : `${limit}`;
@@ -77,7 +78,7 @@ export function SubscriptionSettings() {
         data.message ||
           "Your plan will be downgraded at the end of the billing cycle.",
       );
-      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() });
     },
     onError: (error: unknown) => {
       const msg =

@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { AnalysisOptions, DEFAULT_ANALYSIS_OPTIONS } from "@/lib/types/analysis-options";
+import { queryKeys } from "@/lib/query-keys";
 
 export type UploadStatus = "idle" | "uploading" | "analyzing" | "complete" | "error";
 
@@ -133,8 +134,8 @@ export function useDocumentUploadFlow() {
     clearInterval(progressInterval);
     setUploadProgress(100);
 
-    queryClient.invalidateQueries({ queryKey: ["notifications"] });
-    queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() });
 
     setStatus("analyzing");
     setUploadProgress(0);

@@ -1,24 +1,10 @@
 import { useParams } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDocument, useDocumentAnalysis } from "@/hooks/useDocuments";
-import {
-  useAnalyzeDocument,
-  useComplianceQueries,
-} from "@/hooks/useCompliance";
-import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Target, Sparkles, Loader2 } from "lucide-react";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { Target } from "lucide-react";
 import { toast } from "sonner";
 
 // Refactored Sub-Components Imports
@@ -31,10 +17,6 @@ import { RecommendationsAccordion } from "./components/recommendations-accordion
 import { DocumentChat } from "./components/document-chat";
 import { AiAnswerCard } from "./components/ai-answer-card";
 
-import {
-  AnalysisOptions,
-  DEFAULT_ANALYSIS_OPTIONS,
-} from "@/lib/types/analysis-options";
 import NotRequestedPlaceholder from "./components/not-requested-placeholder";
 
 const containerVariants = {
