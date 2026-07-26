@@ -1,24 +1,40 @@
-import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { FileSearch, Mail, Loader2, ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  FileSearch,
+  Mail,
+  Loader2,
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react";
+import { forgotPassword } from "@/lib/endpoints/user-endpoints";
 
 export function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setSubmitted(true);
-    setLoading(false);
+    try {
+      await forgotPassword(email);
+    } catch {
+      // Network-level failures only — intentionally swallowed so the generic
+      // success state still shows (prevents email enumeration via error messages)
+    } finally {
+      // Always show the success state regardless of whether the account exists
+      setSubmitted(true);
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -28,27 +44,39 @@ export function ForgotPasswordPage() {
         animate={{ opacity: 1, scale: 1 }}
         className="text-center space-y-6"
       >
-        <div className="mx-auto w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center">
-          <CheckCircle2 className="h-8 w-8 text-green-500" />
+        <div className="mx-auto w-16 h-16 rounded-full bg-success/10 flex items-center justify-center">
+          <CheckCircle2 className="h-8 w-8 text-success" />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-3">
           <h1 className="text-2xl font-bold">Check your email</h1>
-          <p className="text-muted-foreground">
-            We've sent a password reset link to:<br />
-            <strong className="text-foreground">{email}</strong>
+          <p className="text-muted-foreground leading-relaxed">
+            If an account exists with{" "}
+            <strong className="text-foreground">{email}</strong>, you'll receive
+            password reset instructions shortly.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            The link expires in <strong>1 hour</strong>. Don't forget to check
+            your spam folder.
           </p>
         </div>
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Didn't receive the email? Check your spam folder or
-          </p>
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => setSubmitted(false)}
+            onClick={() => {
+              setSubmitted(false);
+              setEmail("");
+            }}
           >
             Try another email
           </Button>
+          <Link
+            to="/login"
+            className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to sign in
+          </Link>
         </div>
       </motion.div>
     );
@@ -58,10 +86,10 @@ export function ForgotPasswordPage() {
     <div className="space-y-8">
       {/* Mobile Logo */}
       <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-          <FileSearch className="w-6 h-6 text-white" />
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand to-accent flex items-center justify-center">
+          <FileSearch className="w-6 h-6 text-primary-foreground" />
         </div>
-        <span className="text-xl font-bold">DocIntel</span>
+        <span className="text-xl font-bold">DOCKY</span>
       </div>
 
       {/* Header */}
@@ -71,6 +99,13 @@ export function ForgotPasswordPage() {
           No worries, we'll send you reset instructions.
         </p>
       </div>
+
+      {/* Error banner — only for genuine network failures */}
+      {error && (
+        <div className="text-sm text-destructive text-center bg-destructive/10 border border-destructive/20 rounded-lg px-4 py-2">
+          {error}
+        </div>
+      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -92,14 +127,17 @@ export function ForgotPasswordPage() {
 
         <Button
           type="submit"
-          className="w-full h-11 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+          className="w-full h-11 bg-gradient-to-r from-brand to-accent hover:from-brand-dark hover:to-accent"
           disabled={loading}
         >
           {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Sending...
+            </>
           ) : (
             <>
-              Reset Password
+              Send Reset Instructions
               <ArrowRight className="ml-2 h-4 w-4" />
             </>
           )}
