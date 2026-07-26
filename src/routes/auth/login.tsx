@@ -106,17 +106,8 @@ export function LoginPage() {
         </div>
 
         {/* Remember me */}
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="remember"
-            className="border-input data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-          />
-          <Label
-            htmlFor="remember"
-            className="text-sm font-normal text-muted-foreground cursor-pointer"
-          >
-            Remember me
-          </Label>
+        <div className="text-xs text-muted-foreground underline">
+          <Link to="/forgot-password">Forgot Password?</Link>
         </div>
 
         {/* Submit Button */}

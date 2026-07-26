@@ -12,20 +12,29 @@ import {
   ArrowRight,
   CheckCircle2,
 } from "lucide-react";
+import { forgotPassword } from "@/lib/endpoints/user-endpoints";
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setSubmitted(true);
-    setLoading(false);
+    try {
+      await forgotPassword(email);
+    } catch {
+      // Network-level failures only — intentionally swallowed so the generic
+      // success state still shows (prevents email enumeration via error messages)
+    } finally {
+      // Always show the success state regardless of whether the account exists
+      setSubmitted(true);
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -38,25 +47,36 @@ export function ForgotPasswordPage() {
         <div className="mx-auto w-16 h-16 rounded-full bg-success/10 flex items-center justify-center">
           <CheckCircle2 className="h-8 w-8 text-success" />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-3">
           <h1 className="text-2xl font-bold">Check your email</h1>
-          <p className="text-muted-foreground">
-            We've sent a password reset link to:
-            <br />
-            <strong className="text-foreground">{email}</strong>
+          <p className="text-muted-foreground leading-relaxed">
+            If an account exists with{" "}
+            <strong className="text-foreground">{email}</strong>, you'll receive
+            password reset instructions shortly.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            The link expires in <strong>1 hour</strong>. Don't forget to check
+            your spam folder.
           </p>
         </div>
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Didn't receive the email? Check your spam folder or
-          </p>
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => setSubmitted(false)}
+            onClick={() => {
+              setSubmitted(false);
+              setEmail("");
+            }}
           >
             Try another email
           </Button>
+          <Link
+            to="/login"
+            className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to sign in
+          </Link>
         </div>
       </motion.div>
     );
@@ -79,6 +99,13 @@ export function ForgotPasswordPage() {
           No worries, we'll send you reset instructions.
         </p>
       </div>
+
+      {/* Error banner — only for genuine network failures */}
+      {error && (
+        <div className="text-sm text-destructive text-center bg-destructive/10 border border-destructive/20 rounded-lg px-4 py-2">
+          {error}
+        </div>
+      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -104,10 +131,13 @@ export function ForgotPasswordPage() {
           disabled={loading}
         >
           {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Sending...
+            </>
           ) : (
             <>
-              Reset Password
+              Send Reset Instructions
               <ArrowRight className="ml-2 h-4 w-4" />
             </>
           )}

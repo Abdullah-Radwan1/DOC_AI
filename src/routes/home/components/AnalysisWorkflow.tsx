@@ -45,7 +45,7 @@ export function AnalysisWorkflow() {
   } = useDocumentUploadFlow();
 
   const isSubmitting = status === "uploading" || status === "analyzing";
-  const [showOverlay, setShowOverlay] = useState(true);
+  const [showOverlay, setShowOverlay] = useState(false);
 
   // Show full-screen overlay when analysis starts
   useEffect(() => {
@@ -60,7 +60,7 @@ export function AnalysisWorkflow() {
     <>
       {/* Separate Full-Screen Overlay Component */}
       <AnalyzingOverlay
-        isVisible={true}
+        isVisible={showOverlay && status === "analyzing"}
         onDismiss={() => setShowOverlay(false)}
         fileName={selectedFile?.name}
       />

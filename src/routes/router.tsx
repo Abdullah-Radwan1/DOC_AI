@@ -19,6 +19,7 @@ import { HomePage } from "@/routes/home";
 import { LoginPage } from "@/routes/auth/login";
 import { RegisterPage } from "@/routes/auth/register";
 import { ForgotPasswordPage } from "@/routes/auth/forgot-password";
+import { ResetPasswordPage } from "@/routes/auth/reset-password";
 
 // App Pages
 import { DashboardPage } from "@/routes/dashboard";
@@ -147,6 +148,12 @@ const forgotPasswordRoute = createRoute({
   component: ForgotPasswordPage,
 });
 
+const resetPasswordRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: "/reset-password",
+  component: ResetPasswordPage,
+});
+
 // App Routes
 const dashboardRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
@@ -192,7 +199,12 @@ const notificationsRoute = createRoute({
 
 // Route tree
 const routeTree = rootRoute.addChildren([
-  authLayoutRoute.addChildren([loginRoute, registerRoute, forgotPasswordRoute]),
+  authLayoutRoute.addChildren([
+    loginRoute,
+    registerRoute,
+    forgotPasswordRoute,
+    resetPasswordRoute,
+  ]),
   appLayoutRoute.addChildren([
     dashboardRoute,
     uploadRoute,
