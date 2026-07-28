@@ -72,7 +72,7 @@ export function DocumentChat({
             <Bot className="w-4 h-4" />
           </div>
           <div>
-            <p className="text-sm font-semibold leading-none">DUCKY AI</p>
+            <p className="text-sm font-semibold leading-none">DOCKY AI</p>
             <p className="text-xs text-muted-foreground mt-0.5">
               Ask anything about this document
             </p>
@@ -166,11 +166,7 @@ export function DocumentChat({
 
 // ── Sub-components ───────────────────────────────────────────────────────────
 
-function EmptyState({
-  onPromptClick,
-}: {
-  onPromptClick: (p: string) => void;
-}) {
+function EmptyState({ onPromptClick }: { onPromptClick: (p: string) => void }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -181,7 +177,7 @@ function EmptyState({
         <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/8 border border-border">
           <Sparkles className="w-5 h-5 text-primary" />
         </div>
-        <p className="text-sm font-medium">Ask DUCKY AI anything</p>
+        <p className="text-sm font-medium">Ask DOCKY AI anything</p>
         <p className="text-xs text-muted-foreground max-w-[240px] leading-relaxed">
           I can explain clauses, list obligations, highlight risks, and answer
           questions using the document and its analysis.

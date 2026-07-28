@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { CustomSidebar } from "@/components/app-sidebar";
+import { Footer } from "@/components/footer";
 import {
   useUnreadCount,
   useNotifications,
@@ -259,8 +260,12 @@ export function AppLayout() {
               <Outlet />
             </motion.div>
           </main>
+
+          {/* Global Footer */}
+          <Footer />
         </div>
       </div>
     </TooltipProvider>
+
   );
 }

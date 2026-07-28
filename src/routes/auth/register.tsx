@@ -203,8 +203,25 @@ export function RegisterPage() {
 
               <p className="text-xs text-muted-foreground">
                 Documents are encrypted and processed securely. By continuing
-                you agree to Terms of Service and Privacy Policy.
+                you agree to our{" "}
+                <Link
+                  to="/terms"
+                  target="_blank"
+                  className="text-foreground underline hover:text-primary font-medium"
+                >
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link
+                  to="/privacy"
+                  target="_blank"
+                  className="text-foreground underline hover:text-primary font-medium"
+                >
+                  Privacy Policy
+                </Link>
+                .
               </p>
+
             </div>
           </div>
         </div>

@@ -262,7 +262,7 @@ export function DocumentPage() {
         </AnimatePresence>
       </motion.div>
 
-      {/* ── Right: DUCKY AI Chat ─────────────────────────────────────────── */}
+      {/* ── Right: DOCKY AI Chat ─────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}

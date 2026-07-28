@@ -14,6 +14,8 @@ import { AppLayout } from "@/routes/layouts/AppLayout";
 
 // Public Pages
 import { HomePage } from "@/routes/home";
+import { PrivacyPolicyPage } from "@/routes/legal/privacy";
+import { TermsOfServicePage } from "@/routes/legal/terms";
 
 // Auth Pages
 import { LoginPage } from "@/routes/auth/login";
@@ -57,7 +59,7 @@ const requireNoAuth = async () => {
   let isAuthenticated = false;
   try {
     const cached = queryClient.getQueryData<{ user: User | null }>(
-      queryKeys.auth.me()
+      queryKeys.auth.me(),
     );
     if (cached?.user) {
       isAuthenticated = true;
@@ -84,7 +86,7 @@ const requireAuth = async () => {
   try {
     // 1. Check if user data is already cached
     const cached = queryClient.getQueryData<{ user: User | null }>(
-      queryKeys.auth.me()
+      queryKeys.auth.me(),
     );
     if (cached?.user) {
       isAuthenticated = true;
@@ -108,6 +110,7 @@ const requireAuth = async () => {
     throw redirect({ to: "/login" });
   }
 };
+
 // Public Layout Route
 const authLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -197,6 +200,18 @@ const notificationsRoute = createRoute({
   beforeLoad: requireAuth,
 });
 
+const privacyRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/privacy",
+  component: PrivacyPolicyPage,
+});
+
+const termsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/terms",
+  component: TermsOfServicePage,
+});
+
 // Route tree
 const routeTree = rootRoute.addChildren([
   authLayoutRoute.addChildren([
@@ -213,6 +228,8 @@ const routeTree = rootRoute.addChildren([
     HomeRoute,
     settingsRoute,
     notificationsRoute,
+    privacyRoute,
+    termsRoute,
   ]),
 ]);
 

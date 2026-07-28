@@ -5,10 +5,18 @@ import { analyzeDocument } from "@/lib/endpoints/analysis-endpoints";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
-import { AnalysisOptions, DEFAULT_ANALYSIS_OPTIONS } from "@/lib/types/analysis-options";
+import {
+  AnalysisOptions,
+  DEFAULT_ANALYSIS_OPTIONS,
+} from "@/lib/types/analysis-options";
 import { queryKeys } from "@/lib/query-keys";
 
-export type UploadStatus = "idle" | "uploading" | "analyzing" | "complete" | "error";
+export type UploadStatus =
+  | "idle"
+  | "uploading"
+  | "analyzing"
+  | "complete"
+  | "error";
 
 export function useDocumentUploadFlow() {
   const { user } = useAuth();
@@ -23,12 +31,22 @@ export function useDocumentUploadFlow() {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [status, setStatus] = useState<UploadStatus>("idle");
-  const [uploadedDocumentId, setUploadedDocumentId] = useState<string | null>(null);
+  const [uploadedDocumentId, setUploadedDocumentId] = useState<string | null>(
+    null,
+  );
   const [analysisCompleted, setAnalysisCompleted] = useState(false);
-  const [analysisOptions, setAnalysisOptions] = useState<AnalysisOptions>(DEFAULT_ANALYSIS_OPTIONS);
+  const [analysisOptions, setAnalysisOptions] = useState<AnalysisOptions>(
+    DEFAULT_ANALYSIS_OPTIONS,
+  );
 
-  const [uploadStep, setUploadStep] = useState<{ status: "idle" | "loading" | "success" | "error"; message: string; }>({ status: "idle", message: "" });
-  const [analysisStep, setAnalysisStep] = useState<{ status: "idle" | "loading" | "success" | "error"; message: string; }>({ status: "idle", message: "" });
+  const [uploadStep, setUploadStep] = useState<{
+    status: "idle" | "loading" | "success" | "error";
+    message: string;
+  }>({ status: "idle", message: "" });
+  const [analysisStep, setAnalysisStep] = useState<{
+    status: "idle" | "loading" | "success" | "error";
+    message: string;
+  }>({ status: "idle", message: "" });
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -48,28 +66,34 @@ export function useDocumentUploadFlow() {
       if (status !== "idle" && status !== "error") return;
 
       const droppedFiles = Array.from(e.dataTransfer.files).filter(
-        (file) => file.type === "application/pdf"
+        (file) => file.type === "application/pdf",
       );
 
       if (droppedFiles.length === 0) {
-        toast.error("Invalid file type", { description: "Only PDF files are supported." });
+        toast.error("Invalid file type", {
+          description: "Only PDF files are supported.",
+        });
         return;
       }
       if (droppedFiles.length > 1) {
-        toast.error("Multiple files detected", { description: "Please upload one document at a time." });
+        toast.error("Multiple files detected", {
+          description: "Please upload one document at a time.",
+        });
       }
 
       setSelectedFile(droppedFiles[0]);
     },
-    [status]
+    [status],
   );
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []).filter(
-      (file) => file.type === "application/pdf"
+      (file) => file.type === "application/pdf",
     );
     if (files.length === 0) {
-      toast.error("Invalid file type", { description: "Only PDF files are supported." });
+      toast.error("Invalid file type", {
+        description: "Only PDF files are supported.",
+      });
       return;
     }
     setSelectedFile(files[0]);
@@ -89,13 +113,18 @@ export function useDocumentUploadFlow() {
   const onSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!selectedFile) {
-      toast.error("Missing document", { description: "Please select a PDF document first." });
+      toast.error("Missing document", {
+        description: "Please select a PDF document first.",
+      });
       return;
     }
 
     setStatus("uploading");
     setUploadProgress(0);
-    setUploadStep({ status: "loading", message: "Uploading PDF document to server..." });
+    setUploadStep({
+      status: "loading",
+      message: "Uploading PDF document to server...",
+    });
     setAnalysisStep({ status: "idle", message: "" });
 
     const progressInterval = setInterval(() => {
@@ -126,7 +155,9 @@ export function useDocumentUploadFlow() {
         message: `Status ${error?.response?.status || "Error"}: ${error?.response?.data?.message || error?.message || "There was an error uploading your document."}`,
       });
       toast.error("Upload failed", {
-        description: error?.response?.data?.message || "There was an error uploading your document.",
+        description:
+          error?.response?.data?.message ||
+          "There was an error uploading your document.",
       });
       return;
     }
@@ -139,7 +170,10 @@ export function useDocumentUploadFlow() {
 
     setStatus("analyzing");
     setUploadProgress(0);
-    setAnalysisStep({ status: "loading", message: "Sending analysis request to Ducky AI..." });
+    setAnalysisStep({
+      status: "loading",
+      message: "Sending analysis request to DOCKY AI...",
+    });
 
     try {
       const analysisResult = await analyzeDocument({
@@ -165,7 +199,11 @@ export function useDocumentUploadFlow() {
         description: "Your document has been uploaded and analysed.",
         action: {
           label: "View Analysis",
-          onClick: () => navigate({ to: "/dashboard/documents/$documentId", params: { documentId: documentResult.id } }),
+          onClick: () =>
+            navigate({
+              to: "/dashboard/documents/$documentId",
+              params: { documentId: documentResult.id },
+            }),
         },
       });
     } catch (error: any) {
@@ -177,10 +215,16 @@ export function useDocumentUploadFlow() {
       setUploadedDocumentId(documentResult.id);
 
       toast.warning("Upload successful, but analysis failed", {
-        description: error?.response?.data?.message || "We uploaded your document but couldn't run the analysis. You can try again on the document page.",
+        description:
+          error?.response?.data?.message ||
+          "We uploaded your document but couldn't run the analysis. You can try again on the document page.",
         action: {
           label: "View Document",
-          onClick: () => navigate({ to: "/dashboard/documents/$documentId", params: { documentId: documentResult.id } }),
+          onClick: () =>
+            navigate({
+              to: "/dashboard/documents/$documentId",
+              params: { documentId: documentResult.id },
+            }),
         },
       });
     }
@@ -205,6 +249,6 @@ export function useDocumentUploadFlow() {
     handleDrop,
     handleFileSelect,
     removeFile,
-    onSubmit
+    onSubmit,
   };
 }
