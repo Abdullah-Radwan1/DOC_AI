@@ -46,17 +46,6 @@ export function DocumentHeader({
           </div>
         </div>
       </div>
-
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm">
-          <Share2 className="mr-2 h-4 w-4" />
-          Share Report
-        </Button>
-        <Button size="sm">
-          <Download className="mr-2 h-4 w-4" />
-          Export PDF
-        </Button>
-      </div>
     </motion.div>
   );
 }

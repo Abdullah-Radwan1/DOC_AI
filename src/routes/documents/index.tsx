@@ -157,12 +157,11 @@ export function DocumentsPage() {
         header: "Status",
         cell: ({ row }: any) => {
           const status = row.original.status;
-          const config =
-            statusConfig[status as keyof typeof statusConfig] || {
-              badge: "outline",
-              icon: Clock,
-              label: status || "Unknown",
-            };
+          const config = statusConfig[status as keyof typeof statusConfig] || {
+            badge: "outline",
+            icon: Clock,
+            label: status || "Unknown",
+          };
           const Icon = config.icon;
           return (
             <Badge variant={config.badge} className="gap-1">
@@ -181,7 +180,11 @@ export function DocumentsPage() {
           const risk = row.original.risk_level;
           if (!risk) return <span className="text-muted-foreground">--</span>;
           const config = riskConfig[risk as keyof typeof riskConfig];
-          return <Badge variant={config?.badge as any}>{config?.label || risk}</Badge>;
+          return (
+            <Badge variant={config?.badge as any}>
+              {config?.label || risk}
+            </Badge>
+          );
         },
       },
       {
@@ -263,11 +266,7 @@ export function DocumentsPage() {
                   View Analysis
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Download className="mr-2 h-4 w-4" />
-                Export PDF
-              </DropdownMenuItem>
+
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
@@ -398,11 +397,11 @@ export function DocumentsPage() {
                       {headerGroup.headers.map((header) => (
                         <TableHead key={header.id}>
                           {header.isPlaceholder
-                             ? null
-                             : flexRender(
-                                 header.column.columnDef.header,
-                                 header.getContext(),
-                               )}
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
                         </TableHead>
                       ))}
                     </TableRow>
@@ -436,7 +435,9 @@ export function DocumentsPage() {
                           <FileText className="h-8 w-8" />
                           <p>No documents found.</p>
                           <Button variant="outline" size="sm" asChild>
-                            <Link to="/dashboard/upload">Upload your first document</Link>
+                            <Link to="/dashboard/upload">
+                              Upload your first document
+                            </Link>
                           </Button>
                         </div>
                       </TableCell>
@@ -454,7 +455,8 @@ export function DocumentsPage() {
         <div className="flex items-center justify-between px-2">
           <div className="text-sm text-muted-foreground">
             Showing {(page - 1) * pageSize + 1} to{" "}
-            {Math.min(page * pageSize, meta.totalItems)} of {meta.totalItems} documents
+            {Math.min(page * pageSize, meta.totalItems)} of {meta.totalItems}{" "}
+            documents
           </div>
           <div className="flex items-center space-x-2">
             <Button
@@ -479,7 +481,9 @@ export function DocumentsPage() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setPage((prev) => Math.min(meta.totalPages, prev + 1))}
+              onClick={() =>
+                setPage((prev) => Math.min(meta.totalPages, prev + 1))
+              }
               disabled={page === meta.totalPages}
             >
               <ChevronRight className="h-4 w-4" />

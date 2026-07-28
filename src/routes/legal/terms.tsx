@@ -48,7 +48,9 @@ export function TermsOfServicePage() {
           </AlertTitle>
           <AlertDescription className="text-xs text-muted-foreground leading-relaxed mt-1">
             DOCKY provides automated AI-assisted contract risk and compliance
-            analysis.{" "}
+            analysis and may route documents through third-party AI providers
+            via OpenRouter in accordance with those providers' privacy and data
+            handling policies.{" "}
             <strong>
               DOCKY IS NOT A LAW FIRM AND DOES NOT PROVIDE LEGAL ADVICE.
             </strong>{" "}
@@ -188,8 +190,16 @@ export function TermsOfServicePage() {
             <p className="text-xs leading-relaxed">
               You remain solely responsible for the lawfulness, accuracy,
               quality, and confidentiality of all documents uploaded under your
-              account. DOCKY acts merely as a passive technical pipeline for
-              processing user-submitted files.
+              account. DOCKY processes uploaded documents solely to provide the
+              requested analysis, document review, and related platform
+              functionality.
+            </p>
+            <p className="text-xs leading-relaxed">
+              You represent and warrant that you have all rights, permissions,
+              and authority necessary to upload, transmit, and process the
+              documents you submit through the Platform, and that such upload
+              and processing will not violate any applicable law or agreement to
+              which you are bound.
             </p>
           </div>
         </div>
@@ -216,7 +226,7 @@ export function TermsOfServicePage() {
               DOCKY are processed by our payment partner <strong>Paddle</strong>
               , who acts as the official Merchant of Record. By subscribing to a
               paid plan, you authorize Paddle to charge your chosen payment
-              method on a recurring billing cycle (monthly or annually).
+              method on a recurring billing cycle (monthly).
             </p>
           </div>
 
@@ -228,9 +238,11 @@ export function TermsOfServicePage() {
             </div>
 
             <div className="p-3 rounded-lg border border-border bg-background space-y-1">
-              <strong className="text-foreground">14-Day Refund Window:</strong>{" "}
-              Initial paid subscriptions are eligible for a full refund within
-              14 days of purchase upon written request to billing support.
+              <strong className="text-foreground">Refunds:</strong> Refunds, if
+              any, are handled in accordance with applicable law, the terms of
+              the applicable subscription plan, and any written billing notice
+              issued by DOCKY. DOCKY does not provide automatic refunds except
+              where required by law or expressly stated in writing.
             </div>
           </div>
         </div>
@@ -262,6 +274,10 @@ export function TermsOfServicePage() {
             </p>
             <ul className="list-disc pl-5 space-y-1 text-xs text-muted-foreground">
               <li>
+                DOCKY is not responsible for verifying the authenticity,
+                completeness, legality, or enforceability of uploaded documents.
+              </li>
+              <li>
                 No attorney-client relationship is created by using DOCKY.
               </li>
               <li>
@@ -272,6 +288,17 @@ export function TermsOfServicePage() {
                 You should never execute, sign, or modify legal contracts based
                 solely on DOCKY AI outputs without independent legal
                 verification.
+              </li>
+              <li>
+                You remain solely responsible for reviewing, verifying, and
+                making decisions based on any AI-generated analysis, summaries,
+                or recommendations provided by DOCKY.
+              </li>
+              <li>
+                Uploaded documents or extracted text may be processed by
+                third-party AI providers through OpenRouter in accordance with
+                the applicable provider's privacy policy and data handling
+                practices.
               </li>
             </ul>
           </div>
@@ -318,10 +345,9 @@ export function TermsOfServicePage() {
         </div>
         <div className="text-sm text-muted-foreground leading-relaxed space-y-3">
           <p>
-            We reserve the right to suspend or terminate your account
-            immediately, without prior notice or liability, if you violate these
-            Terms, engage in fraudulent activity, or fail to pay subscription
-            fees.
+            We reserve the right to suspend or terminate your account, without
+            prior notice or liability, if you violate these Terms, engage in
+            fraudulent activity, or fail to pay subscription fees.
           </p>
           <p className="text-xs">
             You may terminate your account at any time via the Settings page.
@@ -369,16 +395,19 @@ export function TermsOfServicePage() {
         </div>
         <div className="text-sm text-muted-foreground leading-relaxed space-y-3">
           <p>
-            These Terms shall be governed by and construed in accordance with
-            the laws of Delaware, United States, without regard to its conflict
-            of law principles.
+            These Terms shall be governed by the applicable governing law for
+            DOCKY as determined by applicable law and any final legal
+            documentation, and shall be interpreted in a manner consistent with
+            those requirements.
           </p>
           <p className="text-xs">
             In the event of any dispute or claim arising out of these Terms, the
-            parties agree to first attempt informal resolution in good faith by
-            contacting <code>legal@docky.ai</code>. If unresolved within 30
-            days, disputes shall be submitted to binding arbitration under JAMS
-            rules.
+            parties agree to first attempt informal resolution in good faith. If
+            the dispute cannot be resolved informally, the parties may seek
+            available remedies through the appropriate courts or other dispute
+            resolution mechanisms required by applicable law. The specific forum
+            and venue provisions are subject to final legal review and may be
+            updated in a future revision.
           </p>
         </div>
       </section>
@@ -408,14 +437,15 @@ export function TermsOfServicePage() {
                 Terms of Service?
               </h4>
               <p className="text-xs text-muted-foreground">
-                Contact our legal support team for clarification.
+                For questions about these Terms or the Platform, please contact
+                our support team at <code></code>.
               </p>
             </div>
             <a
-              href="mailto:legal@docky.ai"
+              href="mailto:dockybusiness4@gmail.com"
               className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity shrink-0"
             >
-              Contact Legal Team
+              Contact Support
             </a>
           </div>
         </div>
