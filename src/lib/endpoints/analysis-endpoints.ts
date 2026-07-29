@@ -41,18 +41,12 @@ export async function getDocumentAnalysis(
 
   const summary = analysisResult?.summary ?? aiPayload?.summary ?? null;
 
-  // Direct answer to whatever the user asked (or a brief orientation if
-  // nothing was asked). Kept separate from `summary` — never merged into
-  // the structured analysis fields below.
   const answer = analysisResult?.answer ?? aiPayload?.answer ?? null;
 
-  // The user's original question, if any, so the UI can label the answer
-  // card accordingly ("Your Answer" vs a generic default).
   const queryText = latestQuery?.queryText ?? latestQuery?.query_text ?? null;
 
   return {
     id: analysisResult?.id ?? responseWrapper?.id ?? latestQuery?.id ?? null,
-    /** The AnalysisRequest.id — used by the chat component as context. */
     analysisRequestId: latestQuery?.id ?? null,
     queryText,
     summary,
@@ -77,7 +71,6 @@ export async function getDocumentAnalysis(
         ? aiPayload.contract.renewalTerms
         : [],
       terminationTerms: aiPayload?.contract?.terminationTerms ?? null,
-      governingLaw: aiPayload?.contract?.governingLaw ?? null,
       importantDates: Array.isArray(aiPayload?.contract?.importantDates)
         ? aiPayload.contract.importantDates
         : [],
@@ -91,8 +84,6 @@ export async function getDocumentAnalysis(
         analysisResult?.overallVerdict ??
         aiPayload?.compliance?.overallVerdict ??
         null,
-      confidence:
-        analysisResult?.confidence ?? aiPayload?.compliance?.confidence ?? null,
       riskLevel:
         analysisResult?.riskLevel ?? aiPayload?.compliance?.riskLevel ?? null,
       summary: aiPayload?.compliance?.summary ?? {
@@ -139,5 +130,29 @@ export async function analyzeDocument({
 
 export async function getAnalysisResult(requestId: string): Promise<any> {
   const { data } = await api.get(`/compliance/analysis/${requestId}`);
+  return data;
+}
+
+/** Trigger first-time AI analysis for an unanalyzed document */
+export async function triggerDocumentAnalysis(
+  documentId: string,
+): Promise<{ requestId: string }> {
+  const { data } = await api.post(`/documents/${documentId}/analyze`);
+  return data;
+}
+
+/** Permanently delete all findings/risks for a document */
+export async function resolveDocumentFindings(
+  documentId: string,
+): Promise<{ success: boolean; deletedCount: number }> {
+  const { data } = await api.delete(`/documents/${documentId}/findings`);
+  return data;
+}
+
+/** Poll the latest analysis request status for a document */
+export async function getDocumentAnalysisStatus(
+  documentId: string,
+): Promise<{ id: string | null; status: string | null; errorMessage: string | null }> {
+  const { data } = await api.get(`/compliance/document/${documentId}/status`);
   return data;
 }

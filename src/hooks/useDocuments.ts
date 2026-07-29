@@ -92,3 +92,62 @@ export function useDeleteDocument() {
     },
   });
 }
+
+/** Trigger first-time analysis for a document without prior analysis */
+export function useAnalyzeDocument() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ documentId }: { documentId: string }) => {
+      return analysisEndpoints.triggerDocumentAnalysis(documentId);
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.documents.analysis(variables.documentId),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.documents.list() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
+    },
+  });
+}
+
+/** Clear all findings/risks/compliance issues for a document */
+export function useResolveFindings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ documentId }: { documentId: string }) => {
+      return analysisEndpoints.resolveDocumentFindings(documentId);
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.documents.analysis(variables.documentId),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.documents.list() });
+    },
+  });
+}
+
+/** Poll analysis status for a document (used by the progress bar) */
+export function useDocumentAnalysisStatus(
+  documentId: string | null | undefined,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ["analysis-status", documentId],
+    queryFn: async () => {
+      if (!documentId) return null;
+      return analysisEndpoints.getDocumentAnalysisStatus(documentId);
+    },
+    enabled: !!documentId && enabled,
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      // Stop polling once terminal state is reached
+      if (status === "completed" || status === "failed" || status === null) {
+        return false;
+      }
+      return 2000; // poll every 2s while pending/processing
+    },
+    staleTime: 0,
+  });
+}

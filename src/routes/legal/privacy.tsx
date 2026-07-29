@@ -45,14 +45,16 @@ export function PrivacyPolicyPage() {
             Key Summary & AI Disclaimer
           </AlertTitle>
           <AlertDescription className="text-xs text-muted-foreground leading-relaxed mt-1">
-            DOCKY processes uploaded PDF contracts using AI models via
-            OpenRouter to deliver contract risk analysis and compliance
-            insights.{" "}
+            DOCKY processes uploaded PDF contracts using enterprise AI models
+            (via OpenRouter) strictly to deliver contract risk analysis and
+            compliance insights.{" "}
             <strong>
-              We do not claim ownership of your documents, we never sell your
-              data, and your documents are not used for public model training
-              unless a provider setting or workspace consent explicitly permits
-              it.
+              We do not claim ownership of your documents and we never sell your
+              personal data. Uploaded documents are processed through OpenRouter
+              and third-party AI providers to generate analyses. Data handling
+              practices may vary depending on the AI provider used. AI-generated
+              outputs are provided for informational purposes only and do not
+              constitute legal advice.
             </strong>{" "}
             AI-generated outputs are for informational purposes only and do not
             constitute legal advice.
@@ -231,34 +233,27 @@ export function PrivacyPolicyPage() {
 
           <div className="space-y-2">
             <h3 className="font-semibold text-foreground text-sm flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Provider
-              Data Use & Consent Settings
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Strict Data
+              Safeguards for AI Processing
             </h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              To make certain AI models available through OpenRouter, DOCKY may
-              enable provider settings that allow the following, where
-              applicable to the selected model or provider:
-            </p>
             <ul className="list-disc pl-5 space-y-2 text-xs">
               <li>
-                <strong>Training and retention:</strong> Paid and free endpoints
-                may be enabled to use request data for training or retention,
-                and some providers may also anonymously use data for training.
+                <strong>Zero Model Training:</strong> Uploaded documents,
+                extracted text chunks, and analysis outputs sent to underlying
+                AI model providers via API are{" "}
+                <strong>
+                  never used to train, retrain, or improve public AI models
+                </strong>
+                .
               </li>
               <li>
-                <strong>Public dataset sharing:</strong> Free endpoints may be
-                enabled to publish prompts and completions to public datasets.
+                <strong>Ephemeral Processing:</strong> AI providers process text
+                prompts transiently during the request lifecycle and do not
+                retain long-term copies of your confidential legal documents.
               </li>
               <li>
-                <strong>Workspace consent:</strong> Workspaces may consent to
-                OpenRouter using inputs and outputs to improve the product; if
-                such consent is provided, the service may apply a 1% data
-                discount in the workspace.
-              </li>
-              <li>
-                <strong>Customer responsibility:</strong> You should review your
-                workspace settings and provider terms before submitting
-                sensitive or confidential information to the Platform.
+                <strong>Encryption in Transit:</strong> All data transmitted to
+                OpenRouter and model provider APIs is encrypted via TLS 1.3.
               </li>
             </ul>
           </div>

@@ -1,9 +1,16 @@
-import { useParams } from "@tanstack/react-router";
+import { useState } from "react";
+import { useParams, useRouter } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { useDocument, useDocumentAnalysis } from "@/hooks/useDocuments";
+import {
+  useDocument,
+  useDocumentAnalysis,
+  useAnalyzeDocument,
+  useResolveFindings,
+  useDocumentAnalysisStatus,
+} from "@/hooks/useDocuments";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
+import { Skeleton } from "@/components/ui/skeleton";
 import { Target } from "lucide-react";
 import { toast } from "sonner";
 
@@ -16,6 +23,7 @@ import { MissingClausesCard } from "./components/missing-clauses-card";
 import { RecommendationsAccordion } from "./components/recommendations-accordion";
 import { DocumentChat } from "./components/document-chat";
 import { AiAnswerCard } from "./components/ai-answer-card";
+import { AnalysisProgressBar } from "./components/analysis-progress-bar";
 
 import NotRequestedPlaceholder from "./components/not-requested-placeholder";
 
@@ -54,9 +62,130 @@ export function DocumentPage() {
   const { documentId } = useParams({
     from: "/app/dashboard/documents/$documentId",
   });
+
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showProgressBar, setShowProgressBar] = useState(false);
+
   const { data: document, isLoading: docLoading } = useDocument(documentId);
-  const { data: analysis, isLoading: analysisLoading } =
-    useDocumentAnalysis(documentId);
+  const {
+    data: analysis,
+    isLoading: analysisLoading,
+    refetch: refetchAnalysis,
+  } = useDocumentAnalysis(documentId);
+
+  // Status polling — only active when progress bar is showing
+  const { data: statusData } = useDocumentAnalysisStatus(
+    documentId,
+    showProgressBar,
+  );
+
+  const analyzeMutation = useAnalyzeDocument();
+  const resolveMutation = useResolveFindings();
+
+  if (docLoading || analysisLoading) {
+    return (
+      <div className="flex flex-col xl:flex-row gap-6 max-w-[1400px] mx-auto pb-10">
+        <div className="flex-1 space-y-6 min-w-0">
+          {/* Header Skeleton */}
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-12 w-12 rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-[250px]" />
+              <Skeleton className="h-4 w-[150px]" />
+            </div>
+          </div>
+
+          {/* Stats Grid Skeleton */}
+          <div className="grid gap-4 md:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i}>
+                <CardContent className="p-4 flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 rounded-lg" />
+                  <div className="space-y-1">
+                    <Skeleton className="h-5 w-[60px]" />
+                    <Skeleton className="h-3 w-[80px]" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Executive Summary Skeleton */}
+          <Card>
+            <CardContent className="p-6 space-y-3">
+              <Skeleton className="h-5 w-[150px]" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-[90%]" />
+              <Skeleton className="h-4 w-[85%]" />
+            </CardContent>
+          </Card>
+
+          {/* Tabs/Main content Skeleton */}
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <div className="flex gap-2">
+                <Skeleton className="h-9 w-[100px]" />
+                <Skeleton className="h-9 w-[100px]" />
+                <Skeleton className="h-9 w-[100px]" />
+              </div>
+              <Skeleton className="h-32 w-full" />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Chat Sidebar Skeleton */}
+        <div className="xl:w-[380px] xl:flex-shrink-0">
+          <Card className="h-[calc(100vh-100px)] flex flex-col p-4 space-y-4">
+            <Skeleton className="h-8 w-[120px]" />
+            <Skeleton className="flex-1 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  const hasAnalysis = !!(analysis as any)?.id || !!(analysis as any)?.summary;
+
+  const handleAnalyze = async () => {
+    if (isAnalyzing) return;
+    setIsAnalyzing(true);
+    setShowProgressBar(true);
+    try {
+      await analyzeMutation.mutateAsync({ documentId });
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ?? err?.message ?? "Analysis failed";
+      toast.error("Analysis failed", { description: msg });
+      setShowProgressBar(false);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleProgressComplete = () => {
+    toast.success("Analysis complete", {
+      description: "Your contract has been fully analyzed.",
+    });
+    refetchAnalysis();
+    // Hide bar after a short delay
+    setTimeout(() => setShowProgressBar(false), 1200);
+  };
+
+  const handleResolve = async () => {
+    try {
+      const result = await resolveMutation.mutateAsync({ documentId });
+      toast.success("Findings resolved", {
+        description: `${result.deletedCount} finding(s) have been permanently cleared.`,
+      });
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        "Failed to resolve findings";
+      toast.error("Failed to resolve", { description: msg });
+    }
+  };
 
   const aiResult =
     (analysis as any)?.AnalysisResult || (analysis as any)?.ai || analysis;
@@ -115,7 +244,6 @@ export function DocumentPage() {
           ? contract.renewalTerms
           : [],
         terminationTerms: contract.terminationTerms ?? null,
-        governingLaw: contract.governingLaw ?? "",
         importantDates: Array.isArray(contract.importantDates)
           ? contract.importantDates
           : [],
@@ -125,7 +253,6 @@ export function DocumentPage() {
       },
       compliance: {
         overallVerdict: compliance.overallVerdict ?? null,
-        confidence: compliance.confidence ?? null,
         riskLevel: compliance.riskLevel ?? null,
         summary: compliance.summary ?? {
           passed: 0,
@@ -171,7 +298,24 @@ export function DocumentPage() {
           createdAt={document?.created_at}
           uploadedBy={document?.uploader?.fullName || document?.uploaded_by}
           itemVariants={itemVariants}
+          hasAnalysis={hasAnalysis}
+          isAnalyzing={isAnalyzing}
+          onAnalyze={handleAnalyze}
+          isResolving={resolveMutation.isPending}
+          onResolve={handleResolve}
         />
+
+        {/* Analysis Progress Bar */}
+        <AnimatePresence>
+          {showProgressBar && (
+            <AnalysisProgressBar
+              documentId={documentId}
+              status={statusData?.status}
+              errorMessage={statusData?.errorMessage}
+              onComplete={handleProgressComplete}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Loading / Processing State */}
         <AnimatePresence mode="wait">

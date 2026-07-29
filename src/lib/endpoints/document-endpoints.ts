@@ -3,6 +3,10 @@ import { DocumentSchema, type Document } from "@/lib/schemas";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapDocument(raw: any): Document {
+  const latestRequest = Array.isArray(raw.analysisRequests) ? raw.analysisRequests[0] : null;
+  const analysisResult = latestRequest?.response?.AnalysisResult ?? null;
+  const risk_level = analysisResult?.riskLevel ?? raw.riskLevel ?? raw.risk_level ?? null;
+
   const doc = {
     id: raw.id,
     filename: raw.originalFileName ?? raw.filename ?? "Untitled",
@@ -10,7 +14,7 @@ function mapDocument(raw: any): Document {
     status: raw.status,
     created_at: raw.createdAt ?? raw.created_at,
     uploaded_by: raw.uploadedBy ?? raw.uploaded_by ?? null,
-    risk_level: raw.riskLevel ?? raw.risk_level ?? null,
+    risk_level: risk_level,
     compliance_score: raw.complianceScore ?? raw.compliance_score ?? null,
     uploader: raw.uploader ?? null,
   };

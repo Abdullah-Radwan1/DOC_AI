@@ -223,10 +223,10 @@ export function LegalLayout({
                   terms, contact our support team.
                 </p>
                 <a
-                  href="mailto:privacy@docky.ai"
+                  href="mailto:dockybusiness4@gmail.com"
                   className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                 >
-                  privacy@docky.ai <ExternalLink className="w-3 h-3" />
+                  dockybusiness4@gmail.com <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
             </div>

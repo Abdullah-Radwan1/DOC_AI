@@ -7,7 +7,7 @@ import {
   flexRender,
   SortingState,
 } from "@tanstack/react-table";
-import { useDocuments, useDeleteDocument } from "@/hooks/useDocuments";
+import { useDocuments, useDeleteDocument, useAnalyzeDocument } from "@/hooks/useDocuments";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,13 +47,14 @@ import {
   ChevronsRight,
   Eye,
   Trash2,
-  Download,
   AlertTriangle,
   Clock,
   CheckCircle2,
   Loader2,
   Upload,
+  BrainCircuit,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const statusConfig: Record<
   string,
@@ -110,6 +111,27 @@ export function DocumentsPage() {
   });
 
   const deleteMutation = useDeleteDocument();
+  const analyzeMutation = useAnalyzeDocument();
+  const [analyzingIds, setAnalyzingIds] = useState<Set<string>>(new Set());
+
+  const handleAnalyze = async (documentId: string) => {
+    setAnalyzingIds((prev) => new Set(prev).add(documentId));
+    try {
+      await analyzeMutation.mutateAsync({ documentId });
+      toast.success("Analysis started", {
+        description: "Your document is being analyzed. Visit the document page to track progress.",
+      });
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? err?.message ?? "Analysis failed";
+      toast.error("Analysis failed", { description: msg });
+    } finally {
+      setAnalyzingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(documentId);
+        return next;
+      });
+    }
+  };
 
   const documents = response?.data ?? [];
   const meta = response?.meta ?? {
@@ -188,40 +210,6 @@ export function DocumentsPage() {
         },
       },
       {
-        accessorKey: "compliance_score",
-        header: ({ column }: any) => (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="-ml-4"
-          >
-            Compliance
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        ),
-        cell: ({ row }: any) => {
-          const score = row.original.compliance_score;
-          if (score === null || score === undefined)
-            return <span className="text-muted-foreground">--</span>;
-          return (
-            <div className="flex items-center gap-2">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                  score >= 80
-                    ? "bg-success/10 text-success"
-                    : score >= 60
-                      ? "bg-warning/10 text-warning"
-                      : "bg-destructive/10 text-destructive"
-                }`}
-              >
-                {score}
-              </div>
-              <span className="text-sm text-muted-foreground">%</span>
-            </div>
-          );
-        },
-      },
-      {
         accessorKey: "created_at",
         header: ({ column }: any) => (
           <Button
@@ -244,45 +232,69 @@ export function DocumentsPage() {
       {
         id: "actions",
         enableHiding: false,
-        cell: ({ row }: any) => (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="bg-card/95 backdrop-blur-xl border-border/50"
-            >
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem asChild>
-                <Link
-                  to="/dashboard/documents/$documentId"
-                  params={{ documentId: row.original.id }}
-                >
-                  <Eye className="mr-2 h-4 w-4" />
-                  View Analysis
-                </Link>
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() =>
-                  deleteMutation.mutate({ documentId: row.original.id })
-                }
+        cell: ({ row }: any) => {
+          const docId = row.original.id;
+          const isReady = row.original.status === "ready";
+          const hasAnalysis = !!row.original.risk_level;
+          const isAnalyzingThis = analyzingIds.has(docId);
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="bg-card/95 backdrop-blur-xl border-border/50"
               >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ),
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem asChild>
+                  <Link
+                    to="/dashboard/documents/$documentId"
+                    params={{ documentId: docId }}
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    View Analysis
+                  </Link>
+                </DropdownMenuItem>
+
+                {/* Analyze — only shown for ready documents without prior analysis */}
+                {isReady && !hasAnalysis && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => handleAnalyze(docId)}
+                      disabled={isAnalyzingThis}
+                    >
+                      {isAnalyzingThis ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <BrainCircuit className="mr-2 h-4 w-4 text-brand" />
+                      )}
+                      {isAnalyzingThis ? "Analyzing…" : "Analyze"}
+                    </DropdownMenuItem>
+                  </>
+                )}
+
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() =>
+                    deleteMutation.mutate({ documentId: docId })
+                  }
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
       },
     ],
-    [deleteMutation],
+    [deleteMutation, analyzingIds],
   );
 
   const table = useReactTable({
