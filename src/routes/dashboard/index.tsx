@@ -129,24 +129,12 @@ export function DashboardPage() {
   if (isLoading) return <DashboardSkeleton />;
 
   const kpis = summary?.kpis;
-  const compliance = summary?.complianceDistribution;
   const risk = summary?.riskDistribution;
   const severity = summary?.findingsSeverityBreakdown;
   const recentAnalyses = summary?.recentAnalyses ?? [];
 
   const upcomingExpirations = summary?.upcomingExpirations ?? [];
-  console.log(summary);
-  console.log("exp", upcomingExpirations);
   const attentionDocs = summary?.documentsRequiringAttention ?? [];
-
-  const totalCompliance =
-    (compliance?.compliant ?? 0) +
-    (compliance?.partial ?? 0) +
-    (compliance?.non_compliant ?? 0) +
-    (compliance?.unknown ?? 0);
-
-  const compliancePct = (n: number) =>
-    totalCompliance > 0 ? Math.round((n / totalCompliance) * 100) : 0;
 
   return (
     <motion.div
@@ -182,92 +170,96 @@ export function DashboardPage() {
         className="grid gap-4 md:grid-cols-2 lg:grid-cols-2"
       >
         {/* Upcoming Expirations */}
-        <motion.div variants={itemVariants}>
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Upcoming Expirations</CardTitle>
-                  <CardDescription>Next 30 days</CardDescription>
+        <motion.div variants={itemVariants} className="h-full">
+          <Card className="h-full flex flex-col justify-between">
+            <div>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Upcoming Expirations</CardTitle>
+                    <CardDescription>Next 30 days</CardDescription>
+                  </div>
+                  <Calendar className="h-5 w-5 text-muted-foreground" />
                 </div>
-                <Calendar className="h-5 w-5 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              {upcomingExpirations.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center">
-                  No documents expiring soon
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {upcomingExpirations.map((doc: UpcomingExpiration) => (
-                    <div
-                      key={doc.id}
-                      className="flex items-start gap-3 p-3 rounded-lg border border-border/50"
-                    >
+              </CardHeader>
+              <CardContent>
+                {upcomingExpirations.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center">
+                    No documents expiring soon
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {upcomingExpirations.map((doc: UpcomingExpiration) => (
                       <div
-                        className={`mt-0.5 p-1.5 rounded-lg ${
-                          doc.daysUntilExpiration <= 7
-                            ? "bg-destructive/10"
-                            : doc.daysUntilExpiration <= 14
-                              ? "bg-warning/10"
-                              : "bg-brand/10"
-                        }`}
+                        key={doc.id}
+                        className="flex items-start gap-3 p-3 rounded-lg border border-border/50"
                       >
-                        <Clock
-                          className={`h-4 w-4 ${
+                        <div
+                          className={`mt-0.5 p-1.5 rounded-lg ${
                             doc.daysUntilExpiration <= 7
-                              ? "text-destructive"
+                              ? "bg-destructive/10"
                               : doc.daysUntilExpiration <= 14
-                                ? "text-warning"
-                                : "text-brand"
+                                ? "bg-warning/10"
+                                : "bg-brand/10"
                           }`}
-                        />
+                        >
+                          <Clock
+                            className={`h-4 w-4 ${
+                              doc.daysUntilExpiration <= 7
+                                ? "text-destructive"
+                                : doc.daysUntilExpiration <= 14
+                                  ? "text-warning"
+                                  : "text-brand"
+                            }`}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {doc.fileName}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {doc.daysUntilExpiration} days left
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {doc.fileName}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {doc.daysUntilExpiration} days left
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </div>
           </Card>
         </motion.div>
 
         {/* Analyses */}
-        <motion.div variants={itemVariants}>
-          <Card className="relative overflow-hidden">
+        <motion.div variants={itemVariants} className="h-full">
+          <Card className="relative overflow-hidden h-full flex flex-col justify-between">
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-accent/10 to-info/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Documents Analysed
-              </CardTitle>
-              <div className="p-2 rounded-lg bg-accent/10">
-                <BarChart3 className="h-4 w-4 text-accent" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {kpis?.totalAnalyses ?? 0}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                <TrendingUp className="h-3 w-3 text-success" />
-                <span className="text-success">
-                  {kpis?.completedAnalyses ?? 0}
-                </span>
-                &nbsp;completed •&nbsp;
-                <span className="text-warning">
-                  {kpis?.pendingAnalyses ?? 0}
-                </span>
-                &nbsp;pending
-              </p>
-            </CardContent>
+            <div>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total Documents Analysed
+                </CardTitle>
+                <div className="p-2 rounded-lg bg-accent/10">
+                  <BarChart3 className="h-4 w-4 text-accent" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">
+                  {kpis?.totalAnalyses ?? 0}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3 text-success" />
+                  <span className="text-success">
+                    {kpis?.completedAnalyses ?? 0}
+                  </span>
+                  &nbsp;completed •&nbsp;
+                  <span className="text-warning">
+                    {kpis?.pendingAnalyses ?? 0}
+                  </span>
+                  &nbsp;pending
+                </p>
+              </CardContent>
+            </div>
           </Card>
         </motion.div>
       </motion.div>

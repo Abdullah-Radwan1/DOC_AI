@@ -25,7 +25,6 @@ export function useProfilePreferences() {
         allowAnalysisAlerts: preferences.allow_analysis_alerts,
       });
 
-      console.log(updatedUser);
       return {
         user: updatedUser,
         preferences,

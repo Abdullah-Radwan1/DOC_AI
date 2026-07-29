@@ -116,7 +116,6 @@ export function NotificationsPage() {
     if (activeTab === "alerts") return n.type === "expiration_warning";
     return true;
   });
-  console.log(notifications);
   const unreadCount = notifications.filter((n) => n.status === "unread").length;
   const alertCount = notifications.filter(
     (n) => n.type === "expiration_warning",

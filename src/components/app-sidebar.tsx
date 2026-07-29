@@ -132,7 +132,6 @@ export function CustomSidebar({
 
   // ── Plan & quota data ──────────────────────────────────────────────────────
   const plan = user?.plan;
-  console.log(plan);
   const uploadsUsed = user?.usage_quota?.uploads_used ?? 0;
   const analysesUsed = user?.usage_quota?.analyses_used ?? 0;
   const planKey = plan as keyof typeof LIMITS;

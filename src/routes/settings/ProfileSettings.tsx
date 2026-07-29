@@ -25,7 +25,6 @@ const itemVariants: Variants = {
 
 export function ProfileSettings() {
   const { user } = useAuth();
-  console.log(user);
   const queryClient = useQueryClient();
 
   const [fullName, setFullName] = useState(user?.full_name || "");
