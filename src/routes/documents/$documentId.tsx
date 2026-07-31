@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams, useRouter } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { useParams, useRouter, Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useDocument,
@@ -11,7 +11,8 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Target } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Target, BrainCircuit, ArrowLeft, FileSearch } from "lucide-react";
 import { toast } from "sonner";
 
 // Refactored Sub-Components Imports
@@ -73,14 +74,25 @@ export function DocumentPage() {
     refetch: refetchAnalysis,
   } = useDocumentAnalysis(documentId);
 
-  // Status polling — only active when progress bar is showing
+  // Status polling — always enabled so we can auto-detect in-progress analyses
+  // when navigating directly from the upload page (showProgressBar starts false).
   const { data: statusData } = useDocumentAnalysisStatus(
     documentId,
-    showProgressBar,
+    true, // always poll; refetchInterval logic stops it once terminal
   );
 
   const analyzeMutation = useAnalyzeDocument();
   const resolveMutation = useResolveFindings();
+
+  // Auto-show the progress bar if we land on this page while an analysis
+  // is already in progress (e.g. navigated here from the upload page).
+  useEffect(() => {
+    const s = statusData?.status;
+    if ((s === "pending" || s === "processing") && !showProgressBar) {
+      setShowProgressBar(true);
+      setIsAnalyzing(true);
+    }
+  }, [statusData?.status]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (docLoading || analysisLoading) {
     return (
@@ -145,7 +157,10 @@ export function DocumentPage() {
     );
   }
 
-  const hasAnalysis = !!(analysis as any)?.id || !!(analysis as any)?.summary;
+  // True only when the AI pipeline has produced real content.
+  // A pending / processing / failed AnalysisRequest with no summary does NOT
+  // count — that would show empty sections and hide the Analyze button wrongly.
+  const hasAnalysis = !!(analysis as any)?.summary;
 
   const handleAnalyze = async () => {
     if (isAnalyzing) return;
@@ -153,23 +168,35 @@ export function DocumentPage() {
     setShowProgressBar(true);
     try {
       await analyzeMutation.mutateAsync({ documentId });
+      // Don't reset isAnalyzing here — the analysis is running in the
+      // background. The progress bar's onComplete / onFail callbacks handle
+      // the final reset so the button stays disabled while AI is working.
     } catch (err: any) {
       const msg =
         err?.response?.data?.message ?? err?.message ?? "Analysis failed";
       toast.error("Analysis failed", { description: msg });
       setShowProgressBar(false);
-    } finally {
       setIsAnalyzing(false);
     }
   };
 
-  const handleProgressComplete = () => {
+  const handleProgressComplete = async () => {
     toast.success("Analysis complete", {
       description: "Your contract has been fully analyzed.",
     });
-    refetchAnalysis();
-    // Hide bar after a short delay
-    setTimeout(() => setShowProgressBar(false), 1200);
+    setIsAnalyzing(false);
+    // Await the data refresh so hasAnalysis is true before we hide CASE 2,
+    // preventing any flash of the "no analysis" state.
+    await refetchAnalysis();
+    setTimeout(() => setShowProgressBar(false), 600);
+  };
+
+  const handleProgressFail = () => {
+    setIsAnalyzing(false);
+    // Wait for the progress bar’s internal auto-dismiss (4.5 s) before hiding
+    // CASE 2. Once showProgressBar becomes false and hasAnalysis is still false,
+    // the page falls to CASE 3 so the user can retry via the Analyze button.
+    setTimeout(() => setShowProgressBar(false), 4_600);
   };
 
   const handleResolve = async () => {
@@ -187,6 +214,111 @@ export function DocumentPage() {
     }
   };
 
+  // ─── CASE 2: Analysis currently in progress ──────────────────────────────────
+  // Show a focused, full-page view. No sidebar, no empty analysis sections.
+  if (isAnalyzing || showProgressBar) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="max-w-2xl mx-auto py-20 space-y-10"
+      >
+        {/* Back link */}
+        <Link
+          to="/dashboard/documents"
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Documents
+        </Link>
+
+        {/* Centred icon + title */}
+        <div className="text-center space-y-3">
+          <div className="p-4 rounded-2xl bg-brand/10 w-fit mx-auto">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+            >
+              <BrainCircuit className="h-10 w-10 text-brand" />
+            </motion.div>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {document?.filename ?? "Analyzing…"}
+          </h1>
+          <p className="text-muted-foreground">
+            AI is processing your contract. This usually takes 1–2 minutes.
+          </p>
+        </div>
+
+        {/* Live stage-by-stage progress bar */}
+        <AnalysisProgressBar
+          status={statusData?.status}
+          errorMessage={statusData?.errorMessage}
+          onComplete={handleProgressComplete}
+          onFail={handleProgressFail}
+        />
+
+        <p className="text-xs text-muted-foreground text-center">
+          You can safely leave this page — the analysis will continue in the
+          background. Return here or check the documents list for results.
+        </p>
+      </motion.div>
+    );
+  }
+
+  // ─── CASE 3: No completed analysis found ──────────────────────────────────
+  // Document exists but the AI pipeline hasn't produced any results yet.
+  // Show a 404-style empty state with the Analyze button.
+  if (!hasAnalysis) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="max-w-[1400px] mx-auto space-y-8 pb-10"
+      >
+        {/* Keep the header so the user can start an analysis */}
+        <DocumentHeader
+          filename={document?.filename}
+          createdAt={document?.created_at}
+          uploadedBy={document?.uploader?.fullName || document?.uploaded_by}
+          itemVariants={itemVariants}
+          hasAnalysis={false}
+          isAnalyzing={isAnalyzing}
+          onAnalyze={handleAnalyze}
+        />
+
+        {/* 404-style empty state */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="min-h-[55vh] flex flex-col items-center justify-center text-center space-y-6 py-20"
+        >
+          <div className="p-5 rounded-full bg-muted/60 w-fit">
+            <FileSearch className="h-12 w-12 text-muted-foreground/60" />
+          </div>
+          <div className="space-y-2 max-w-sm">
+            <h2 className="text-xl font-semibold">No analysis found</h2>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              This document hasn’t been analyzed yet. Run an AI analysis to
+              extract parties, obligations, penalties, compliance requirements,
+              and more.
+            </p>
+          </div>
+          <Button
+            onClick={handleAnalyze}
+            disabled={isAnalyzing}
+            className="gap-2"
+          >
+            <BrainCircuit className="h-4 w-4" />
+            {isAnalyzing ? "Starting…" : "Start Analysis"}
+          </Button>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  // ─── CASE 4: Full analysis view ─────────────────────────────────────────────
   const aiResult =
     (analysis as any)?.AnalysisResult || (analysis as any)?.ai || analysis;
 
@@ -304,18 +436,6 @@ export function DocumentPage() {
           isResolving={resolveMutation.isPending}
           onResolve={handleResolve}
         />
-
-        {/* Analysis Progress Bar */}
-        <AnimatePresence>
-          {showProgressBar && (
-            <AnalysisProgressBar
-              documentId={documentId}
-              status={statusData?.status}
-              errorMessage={statusData?.errorMessage}
-              onComplete={handleProgressComplete}
-            />
-          )}
-        </AnimatePresence>
 
         {/* Loading / Processing State */}
         <AnimatePresence mode="wait">

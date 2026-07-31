@@ -183,22 +183,25 @@ export function useDocumentUploadFlow() {
         options: analysisOptions,
       });
 
-      const verdict = analysisResult?.compliance?.overallVerdict || "completed";
-      const riskLevel = analysisResult?.compliance?.riskLevel || "medium";
+      // The API now returns { requestId } immediately — analysis runs in the
+      // background. Don't try to read verdict/riskLevel from the response;
+      // those fields only exist after the AI pipeline finishes.
+      const requestId = (analysisResult as any)?.requestId ?? 'n/a';
 
       setAnalysisStep({
         status: "success",
-        message: `Status 200: Analysis complete. Verdict: ${verdict.toUpperCase()} (Risk: ${riskLevel.toUpperCase()})`,
+        message: `Status 202: Analysis queued (request: ${requestId}). AI is processing in the background…`,
       });
 
       setStatus("complete");
       setAnalysisCompleted(true);
       setUploadedDocumentId(documentResult.id);
 
-      toast.success("Analysis complete!", {
-        description: "Your document has been uploaded and analysed.",
+      toast.success("Document ready — analysis in progress!", {
+        description:
+          "Track the live stage-by-stage progress on the document page.",
         action: {
-          label: "View Analysis",
+          label: "View Progress",
           onClick: () =>
             navigate({
               to: "/dashboard/documents/$documentId",

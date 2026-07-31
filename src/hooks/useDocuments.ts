@@ -87,7 +87,12 @@ export function useDeleteDocument() {
       await documentEndpoints.deleteDocument(documentId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.documents.list() });
+      // refetchType: "all" ensures the list refetches even when it has no
+      // active subscribers (e.g. a cached documents page in the background).
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.documents.list(),
+        refetchType: "all",
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
     },
   });
@@ -102,9 +107,10 @@ export function useAnalyzeDocument() {
       return analysisEndpoints.triggerDocumentAnalysis(documentId);
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.documents.analysis(variables.documentId),
-      });
+      // The mutation now returns immediately with { requestId } before analysis
+      // is done. Do NOT invalidate the analysis query here — it will return
+      // stale/empty data. The AnalysisProgressBar's onComplete callback drives
+      // the refetchAnalysis() call once polling detects "completed".
       queryClient.invalidateQueries({ queryKey: queryKeys.documents.list() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
     },
@@ -142,11 +148,11 @@ export function useDocumentAnalysisStatus(
     enabled: !!documentId && enabled,
     refetchInterval: (query) => {
       const status = query.state.data?.status;
-      // Stop polling once terminal state is reached
+      // Stop polling once a terminal state is reached
       if (status === "completed" || status === "failed" || status === null) {
         return false;
       }
-      return 2000; // poll every 2s while pending/processing
+      return 1500; // poll every 1.5 s while pending / processing
     },
     staleTime: 0,
   });

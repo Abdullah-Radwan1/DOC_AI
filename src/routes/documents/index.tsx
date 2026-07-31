@@ -30,6 +30,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -113,6 +123,28 @@ export function DocumentsPage() {
   const deleteMutation = useDeleteDocument();
   const analyzeMutation = useAnalyzeDocument();
   const [analyzingIds, setAnalyzingIds] = useState<Set<string>>(new Set());
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+
+  const handleDelete = () => {
+    if (!deleteTarget) return;
+    deleteMutation.mutate(
+      { documentId: deleteTarget.id },
+      {
+        onSuccess: () => {
+          toast.success("Document deleted", {
+            description: `"${deleteTarget.name}" has been permanently removed.`,
+          });
+          setDeleteTarget(null);
+        },
+        onError: (err: any) => {
+          toast.error("Delete failed", {
+            description: err?.response?.data?.message ?? err?.message ?? "Could not delete document.",
+          });
+          setDeleteTarget(null);
+        },
+      },
+    );
+  };
 
   const handleAnalyze = async (documentId: string) => {
     setAnalyzingIds((prev) => new Set(prev).add(documentId));
@@ -282,7 +314,7 @@ export function DocumentsPage() {
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive"
                   onClick={() =>
-                    deleteMutation.mutate({ documentId: docId })
+                    setDeleteTarget({ id: docId, name: row.original.filename ?? row.original.original_file_name ?? "Document" })
                   }
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
@@ -294,7 +326,7 @@ export function DocumentsPage() {
         },
       },
     ],
-    [deleteMutation, analyzingIds],
+    [analyzingIds, setDeleteTarget],
   );
 
   const table = useReactTable({
@@ -528,6 +560,46 @@ export function DocumentsPage() {
           </div>
         </div>
       )}
+
+      {/* ── Delete confirmation dialog ───────────────────────────────────── */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-destructive" />
+              Delete document?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                You are about to permanently delete{" "}
+                <span className="font-semibold text-foreground">
+                  "{deleteTarget?.name}"
+                </span>
+                .
+              </p>
+              <p>
+                This will remove the document, all extracted content, analysis
+                results, and findings. <span className="font-medium text-destructive">This action cannot be undone.</span>
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleteMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-2"
+            >
+              {deleteMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+              {deleteMutation.isPending ? "Deleting…" : "Delete permanently"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 }
