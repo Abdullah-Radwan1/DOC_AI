@@ -19,7 +19,6 @@ import { toast } from "sonner";
 import { DocumentHeader } from "./components/document-header";
 import { StatsGrid } from "./components/stats-grid";
 import { ContractAnalysisTabs } from "./components/contract-analysis-tabs";
-import { ComplianceProgressCard } from "./components/compliance-progress-card";
 import { MissingClausesCard } from "./components/missing-clauses-card";
 import { RecommendationsAccordion } from "./components/recommendations-accordion";
 import { DocumentChat } from "./components/document-chat";
@@ -27,6 +26,7 @@ import { AiAnswerCard } from "./components/ai-answer-card";
 import { AnalysisProgressBar } from "./components/analysis-progress-bar";
 
 import NotRequestedPlaceholder from "./components/not-requested-placeholder";
+import { ComplianceProgressCard } from "./components/compliance-progress-card";
 
 const containerVariants = {
   hidden: { opacity: 0 },
