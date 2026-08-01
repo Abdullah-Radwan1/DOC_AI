@@ -112,7 +112,7 @@ export function PrivacyPolicyPage() {
               </div>
               <p className="text-xs">
                 Full name, business email address, encrypted password hash,
-                organization name, profile preferences, and account metadata.
+                profile preferences, and account metadata.
               </p>
             </div>
 
@@ -346,7 +346,7 @@ export function PrivacyPolicyPage() {
             <div className="p-3 rounded-lg border border-border bg-background flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <strong className="text-foreground">
-                  Cloud Database & Storage (Supabase / AWS / Vercel):
+                  Database & Storage (Neon / Vercel):
                 </strong>{" "}
                 Encrypted database hosting, file storage, and serverless
                 infrastructure.
