@@ -11,30 +11,9 @@ interface ComplianceProgressCardProps {
 }
 
 export function ComplianceProgressCard({
-  complianceScore,
   requirements,
   itemVariants,
 }: ComplianceProgressCardProps) {
-  const getStatusLabel = (score: number) => {
-    if (score >= 80) return "Good Standing";
-    if (score >= 60) return "Needs Attention";
-    return "Critical Issues";
-  };
-
-  const getStatusDesc = (score: number) => {
-    if (score >= 80)
-      return "Most compliance requirements are met. Minor improvements recommended.";
-    if (score >= 60)
-      return "Several compliance gaps identified. Review recommendations below.";
-    return "Significant compliance issues found. Immediate action required.";
-  };
-
-  const getStrokeColor = (score: number) => {
-    if (score >= 80) return "#22c55e";
-    if (score >= 60) return "#f59e0b";
-    return "#ef4444";
-  };
-
   return (
     <motion.div variants={itemVariants}>
       <Card>

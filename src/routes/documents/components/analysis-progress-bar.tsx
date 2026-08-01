@@ -54,12 +54,6 @@ const STAGES = [
   },
 ] as const;
 
-function formatElapsed(ms: number): string {
-  const s = Math.floor(ms / 1000);
-  if (s < 60) return `${s}s`;
-  return `${Math.floor(s / 60)}m ${s % 60}s`;
-}
-
 /**
  * Animated analysis progress bar with named stages and per-stage checkmarks.
  *
@@ -192,14 +186,7 @@ export function AnalysisProgressBar({
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                {isProcessing && elapsedMs > 0 && (
-                  <>
-                    <Clock className="h-3 w-3" />
-                    <span className="tabular-nums">{formatElapsed(elapsedMs)}</span>
-                    <span className="text-border">·</span>
-                  </>
-                )}
+              <div className="flex items-center text-xs text-muted-foreground">
                 <span className="tabular-nums font-semibold">
                   {Math.round(progressPct)}%
                 </span>
@@ -227,8 +214,10 @@ export function AnalysisProgressBar({
             <div className="grid gap-1.5">
               {STAGES.map((stage, index) => {
                 const done = isCompleted || index < currentStageIndex;
-                const active = !isCompleted && !isFailed && index === currentStageIndex;
-                const pending = !isCompleted && !isFailed && index > currentStageIndex;
+                const active =
+                  !isCompleted && !isFailed && index === currentStageIndex;
+                const pending =
+                  !isCompleted && !isFailed && index > currentStageIndex;
 
                 return (
                   <motion.div
@@ -267,7 +256,11 @@ export function AnalysisProgressBar({
                     {/* Stage label */}
                     <span
                       className={`font-medium leading-none ${
-                        active ? "text-foreground" : done ? "text-emerald-600 dark:text-emerald-400" : ""
+                        active
+                          ? "text-foreground"
+                          : done
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : ""
                       }`}
                     >
                       {stage.label}
