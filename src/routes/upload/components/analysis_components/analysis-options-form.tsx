@@ -92,7 +92,7 @@ export function AnalysisOptionsForm({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-brand" />
+              <Sparkles className="h-4 w-4 " />
               Analysis Configuration
             </CardTitle>
             <CardDescription className="text-xs">

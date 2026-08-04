@@ -41,7 +41,7 @@ export function AuditRiskSection({
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 border-b border-border/60 pb-2">
-        <ShieldAlert className="h-4 w-4 text-brand/80" />
+        <ShieldAlert className="h-4 w-4 " />
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Audit & Risk Analytics
         </h3>

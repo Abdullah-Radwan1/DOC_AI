@@ -25,13 +25,13 @@ export function AiAnswerCard({
     <motion.div variants={itemVariants}>
       <Card
         className={cn(
-          "bg-gradient-to-br from-primary/5 via-background to-primary/5 border-primary/20",
+          "border-border/70 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.04)]",
           className,
         )}
       >
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
+            <Sparkles className="h-5 w-5 text-[#2563EB]" />
             <CardTitle>{query ? "Your Answer" : "DOCKY's Take"}</CardTitle>
           </div>
           {query && (

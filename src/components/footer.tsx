@@ -4,7 +4,7 @@ import { ShieldCheck, FileText, Lock, Sparkles } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="w-full border-t bg-card/60 backdrop-blur-sm text-muted-foreground mt-auto">
+    <footer className="w-full border-t border-border/70 bg-white/80 backdrop-blur-sm text-muted-foreground mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
           {/* Brand Column */}

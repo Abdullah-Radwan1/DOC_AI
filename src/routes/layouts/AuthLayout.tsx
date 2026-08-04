@@ -6,7 +6,7 @@ export function AuthLayout() {
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-background via-muted to-background relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-white relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div
@@ -19,9 +19,9 @@ export function AuthLayout() {
         </div>
 
         {/* Decorative Glass Cards */}
-        <div className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-br from-primary/10 to-accent/10 rounded-3xl backdrop-blur-xl border border-border/20 transform rotate-12" />
-        <div className="absolute bottom-40 right-20 w-48 h-48 bg-gradient-to-br from-primary/5 to-accent/5 rounded-2xl backdrop-blur-xl border border-border/20 transform -rotate-6" />
-        <div className="absolute top-1/2 left-1/3 w-80 h-80 bg-gradient-to-br from-muted/20 to-background/20 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-20 w-64 h-64 rounded-3xl border border-border/70 bg-white/80 backdrop-blur-xl shadow-[0_20px_50px_rgba(37,99,235,0.08)] transform rotate-12" />
+        <div className="absolute bottom-40 right-20 w-48 h-48 rounded-2xl border border-border/70 bg-white/70 backdrop-blur-xl shadow-[0_20px_50px_rgba(16,185,129,0.08)] transform -rotate-6" />
+        <div className="absolute top-1/2 left-1/3 w-80 h-80 rounded-full blur-3xl bg-gradient-to-br from-[#2563EB]/10 to-[#10B981]/10" />
 
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20">
@@ -31,7 +31,7 @@ export function AuthLayout() {
             transition={{ duration: 0.6 }}
           >
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 border border-border flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#2563EB]/10 to-[#10B981]/10 border border-border flex items-center justify-center">
                 <img src="/logo.png" alt="DOCKY Logo" className="w-7 h-7" />
               </div>
               <span className="text-2xl font-bold text-foreground tracking-tight">
@@ -42,7 +42,7 @@ export function AuthLayout() {
             <h1 className="text-4xl xl:text-5xl font-bold text-foreground leading-tight mb-6">
               AI-Powered
               <br />
-              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#2563EB] via-[#7C3AED] to-[#10B981] bg-clip-text text-transparent">
                 Document Intelligence
               </span>
             </h1>

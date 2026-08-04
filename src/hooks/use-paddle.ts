@@ -17,7 +17,6 @@ export function usePaddle() {
     const token = import.meta.env.VITE_PADDLE_CLIENT_TOKEN;
 
     if (!token) {
-      console.warn("Paddle Client Token is missing from env variables.");
       return;
     }
 
@@ -85,7 +84,7 @@ export function usePaddle() {
         }
       } catch (error) {
         toast.error("An error occurred starting checkout.");
-        console.error("Checkout error:", error);
+        // console.error("Checkout error:", error);
       }
     },
     [paddle],

@@ -32,7 +32,7 @@ export function AnalysisConfigSection({
           {/* Compliance Prompt & Quick Examples */}
           <div className="space-y-4 flex flex-col h-full">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 border w-8 items-center justify-center rounded-full bg-brand font-bold shadow-sm shrink-0">
+              <div className="flex h-8 border w-8 items-center text-white justify-center rounded-full bg-brand font-bold shadow-sm shrink-0">
                 1
               </div>
               <h3 className="text-lg font-semibold">
@@ -58,7 +58,7 @@ export function AnalysisConfigSection({
           {/*  Analysis Options Form */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="flex border h-8 w-8 items-center justify-center rounded-full bg-brand font-bold shadow-sm shrink-0">
+              <div className="flex border h-8 w-8 items-center justify-center rounded-full text-white bg-brand font-bold shadow-sm shrink-0">
                 2
               </div>
               <h3 className="text-lg font-semibold">Option Analysis</h3>

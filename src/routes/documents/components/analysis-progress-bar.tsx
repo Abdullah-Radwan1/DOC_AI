@@ -132,10 +132,10 @@ export function AnalysisProgressBar({
   })();
 
   const barColor = isFailed
-    ? "from-destructive to-destructive/80"
+    ? "from-[#EF4444] to-[#EF4444]/80"
     : isCompleted
-      ? "from-emerald-500 to-green-400"
-      : "from-brand via-accent to-brand";
+      ? "from-[#10B981] to-[#10B981]/80"
+      : "from-[#2563EB] via-[#7C3AED] to-[#10B981]";
 
   const headerIcon = isFailed ? (
     <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
@@ -146,7 +146,7 @@ export function AnalysisProgressBar({
       animate={{ rotate: 360 }}
       transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
     >
-      <BrainCircuit className="h-4 w-4 text-brand shrink-0" />
+      <BrainCircuit className="h-4 w-4 text-[#2563EB] shrink-0" />
     </motion.div>
   );
 
@@ -236,7 +236,7 @@ export function AnalysisProgressBar({
                     {/* Status icon */}
                     <span className="shrink-0 w-3.5 flex items-center justify-center">
                       {done ? (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                        <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" />
                       ) : active ? (
                         <motion.div
                           animate={{ rotate: 360 }}
@@ -246,7 +246,7 @@ export function AnalysisProgressBar({
                             ease: "linear",
                           }}
                         >
-                          <Loader2 className="h-3.5 w-3.5 text-brand" />
+                          <Loader2 className="h-3.5 w-3.5 text-[#2563EB]" />
                         </motion.div>
                       ) : (
                         <Circle className="h-3 w-3" />

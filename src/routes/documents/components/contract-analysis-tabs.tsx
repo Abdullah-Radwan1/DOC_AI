@@ -41,7 +41,7 @@ export function ContractAnalysisTabs({
   itemVariants,
 }: ContractAnalysisTabsProps) {
   const source = aiAnalysis ?? analysis ?? {};
-  
+
   // Options determine which sections were requested
   const options = source?.analysisOptions ?? null;
   const isSectionRequested = (key: string) => {
@@ -65,7 +65,7 @@ export function ContractAnalysisTabs({
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <FileWarning className="h-5 w-5 text-brand" />
+            <FileWarning className="h-5 w-5 text-[#2563EB]" />
             <CardTitle>Contract Analysis</CardTitle>
           </div>
           <CardDescription>
@@ -98,8 +98,8 @@ export function ContractAnalysisTabs({
                       className="space-y-3 rounded-lg border border-border/50 bg-muted/30 p-4"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-brand/10 p-2">
-                          <Building2 className="h-5 w-5 text-brand" />
+                        <div className="rounded-lg bg-[#2563EB]/10 p-2">
+                          <Building2 className="h-5 w-5 text-[#2563EB]" />
                         </div>
 
                         <div>
@@ -142,8 +142,8 @@ export function ContractAnalysisTabs({
                       key={i}
                       className="flex items-start gap-3 rounded-lg border border-border/50 p-3"
                     >
-                      <div className="rounded-lg bg-brand/10 p-2">
-                        <Users className="h-4 w-4 text-brand" />
+                      <div className="rounded-lg bg-[#2563EB]/10 p-2">
+                        <Users className="h-4 w-4 text-[#2563EB]" />
                       </div>
 
                       <div className="min-w-0 flex-1">
@@ -274,8 +274,8 @@ export function ContractAnalysisTabs({
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="rounded-lg border border-border/50 p-4">
                     <div className="mb-3 flex items-center gap-3">
-                      <div className="rounded-lg bg-brand/10 p-2">
-                        <Scale className="h-5 w-5 text-brand" />
+                      <div className="rounded-lg bg-[#2563EB]/10 p-2">
+                        <Scale className="h-5 w-5 text-[#2563EB]" />
                       </div>
                       <p className="font-medium">Governing Law</p>
                     </div>
@@ -300,12 +300,20 @@ export function ContractAnalysisTabs({
                     ) : (
                       <div className="space-y-3">
                         {renewalTerms.map((term: any, i: number) => (
-                          <div key={i} className="text-sm text-muted-foreground">
+                          <div
+                            key={i}
+                            className="text-sm text-muted-foreground"
+                          >
                             <p className="font-medium text-foreground">
                               {term.type || "Renewal clause"}
                             </p>
                             <p>Period: {term.period || "Not specified"}</p>
-                            <p>Notice: {term.noticePeriod || term.notice_period || "Not specified"}</p>
+                            <p>
+                              Notice:{" "}
+                              {term.noticePeriod ||
+                                term.notice_period ||
+                                "Not specified"}
+                            </p>
                             <p>
                               Auto renew:{" "}
                               {typeof term.auto_renew === "boolean"
@@ -343,8 +351,8 @@ export function ContractAnalysisTabs({
                       key={i}
                       className="flex items-start gap-3 rounded-lg border border-border/50 p-4"
                     >
-                      <div className="rounded-lg bg-brand/10 p-2">
-                        <CalendarDays className="h-4 w-4 text-brand" />
+                      <div className="rounded-lg bg-[#2563EB]/10 p-2">
+                        <CalendarDays className="h-4 w-4 text-[#2563EB]" />
                       </div>
 
                       <div className="min-w-0 flex-1">

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 export function CTASection() {
   return (
-    <section className="mx-auto max-w-5xl rounded-3xl border border-brand/15 bg-gradient-to-br from-brand/5 via-card to-accent/5 p-8 text-center sm:p-12">
+    <section className="mx-auto max-w-5xl rounded-[28px] border border-border/70 bg-white p-8 text-center shadow-[0_24px_60px_rgba(15,23,42,0.06)] sm:p-12">
       <div className="mx-auto max-w-2xl space-y-4">
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
           Track Your Documents & Stay Ahead of Compliance Risks
@@ -18,7 +18,7 @@ export function CTASection() {
       <div className="mt-6 flex flex-wrap justify-center gap-4">
         <Button
           size="lg"
-          className="bg-gradient-to-r from-brand to-accent hover:from-brand-dark hover:to-accent"
+          className="bg-gradient-to-r from-[#2563EB] via-[#7C3AED] to-[#10B981] hover:opacity-95"
           asChild
         >
           <Link to="/register">Create Account</Link>

@@ -53,7 +53,7 @@ export function ContractStructureSection({
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 border-b border-border/60 pb-2">
-        <FileJson className="h-4 w-4 text-brand/80" />
+        <FileJson className="h-4 w-4 " />
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Contract Structure Extraction
         </h3>

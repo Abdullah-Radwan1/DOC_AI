@@ -32,8 +32,9 @@ function AnimatedText({
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-background via-background to-brand/5 p-6 sm:p-10 lg:p-12">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.10),transparent_30%),radial-gradient(circle_at_left,rgba(168,85,247,0.08),transparent_25%)] pointer-events-none" />
+    <section className="relative overflow-hidden rounded-[28px] border border-border/70 bg-white p-6 sm:p-10 lg:p-12 shadow-[0_24px_60px_rgba(15,23,42,0.06)]">
+      <div className="hero-glow absolute inset-0 rounded-[28px] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.12),transparent_30%),radial-gradient(circle_at_left,rgba(16,185,129,0.10),transparent_25%)] pointer-events-none" />
 
       <div className="relative max-w-5xl mx-auto text-center space-y-6">
         <AnimatedText

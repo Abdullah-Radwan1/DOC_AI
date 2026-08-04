@@ -62,8 +62,8 @@ export function DocumentHeader({
           Back to Documents
         </Link>
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-brand to-accent">
-            <FileText className="h-6 w-6 " />
+          <div className="p-2.5 rounded-xl bg-gradient-to-br from-[#2563EB] via-[#7C3AED] to-[#10B981] shadow-[0_10px_24px_rgba(37,99,235,0.18)]">
+            <FileText className="h-6 w-6 " color="white" />
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">

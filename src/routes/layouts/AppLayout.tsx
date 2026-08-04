@@ -93,7 +93,7 @@ export function AppLayout() {
 
   return (
     <TooltipProvider delayDuration={100}>
-      <div className="min-h-screen flex">
+      <div className="min-h-screen flex bg-transparent">
         {/* Sidebar */}
         {showSidebar && (
           <CustomSidebar
@@ -107,7 +107,7 @@ export function AppLayout() {
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden relative">
           {/* Top Bar */}
-          <header className="h-16 border-b bg-background/80 backdrop-blur-sm flex items-center justify-between px-4 lg:px-8 sticky top-0 z-20">
+          <header className="h-16 border-b border-border/70 bg-white/80 backdrop-blur-sm flex items-center justify-between px-4 lg:px-8 sticky top-0 z-20">
             {user ? (
               <div className="flex items-center gap-4">
                 {/* Mobile menu button */}
@@ -266,6 +266,5 @@ export function AppLayout() {
         </div>
       </div>
     </TooltipProvider>
-
   );
 }

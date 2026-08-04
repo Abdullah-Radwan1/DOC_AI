@@ -70,8 +70,8 @@ export function AnalysisWorkflow() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, delay: 0.15 }}
       >
-        <Card className="overflow-hidden border-border/50 bg-card/50 backdrop-blur shadow-lg">
-          <CardHeader className="border-b border-border/50 bg-muted/20 pb-4">
+        <Card className="overflow-hidden border-border/70 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.05)]">
+          <CardHeader className="border-b border-border/70 bg-slate-50/80 pb-4">
             <CardTitle className="text-xl">AI Compliance Analysis</CardTitle>
             <CardDescription className="text-sm">
               Upload your document, configure the analysis modules, and provide
@@ -85,7 +85,7 @@ export function AnalysisWorkflow() {
                 {/* Left Column - Step 1 Dropzone & Step 3 Prompt */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand border font-bold shadow-sm">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-white border font-bold shadow-sm">
                       1
                     </div>
                     <h3 className="text-lg font-semibold">Upload Document</h3>
@@ -112,7 +112,7 @@ export function AnalysisWorkflow() {
                   {/* Step 3 - Compliance Prompt */}
                   <div className="space-y-4 pt-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand border font-bold shadow-sm">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#2563EB] to-[#7C3AED] text-white font-bold shadow-sm">
                         3
                       </div>
                       <h3 className="text-lg font-semibold">
@@ -158,7 +158,7 @@ export function AnalysisWorkflow() {
                 <div className="space-y-10">
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand border font-bold shadow-sm">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#2563EB] to-[#7C3AED] text-white font-bold shadow-sm">
                         2
                       </div>
                       <h3 className="text-lg font-semibold">
@@ -189,7 +189,7 @@ export function AnalysisWorkflow() {
                   type="submit"
                   size="lg"
                   disabled={!selectedFile || isSubmitting}
-                  className="min-w-[190px] bg-gradient-to-r from-brand to-accent hover:from-brand-dark hover:to-accent border shadow-md"
+                  className="bg-gradient-to-r from-[#2563EB] via-[#7C3AED] to-[#10B981]"
                 >
                   {isSubmitting ? (
                     <>

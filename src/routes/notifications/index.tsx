@@ -199,7 +199,7 @@ export function NotificationsPage() {
             <TabsTrigger value="unread" className="flex items-center gap-2">
               Unread
               {unreadCount > 0 && (
-                <Badge className="ml-1 px-1.5 py-0 text-xs bg-brand hover:bg-brand-dark">
+                <Badge className="ml-1 px-1.5 py-0 text-xs bg-brand text-white hover:bg-brand-dark">
                   {unreadCount}
                 </Badge>
               )}

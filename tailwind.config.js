@@ -80,13 +80,13 @@ export default {
         },
 
         /* =========================
-         * BRAND (optional, very subtle)
+         * BRAND (Primary purple gradient color)
          * ========================= */
         brand: {
-          DEFAULT: "hsl(var(--brand))",
-          foreground: "hsl(var(--brand-foreground))",
-          dark: "hsl(var(--brand-dark))",
-          muted: "hsl(var(--brand-muted))",
+          DEFAULT: "rgb(var(--brand) / <alpha-value>)",
+          foreground: "rgb(var(--brand-foreground) / <alpha-value>)",
+          dark: "rgb(var(--brand-dark) / <alpha-value>)",
+          muted: "rgb(var(--brand-muted) / <alpha-value>)",
         },
 
         /* =========================

@@ -9,7 +9,7 @@ export const queryKeys = {
     byId: (id: string | null | undefined) => ["users", id] as const,
   },
   documents: {
-    list: (params?: DocumentQueryParams) => ["documents", params] as const,
+    list: (params?: DocumentQueryParams) => (params ? ["documents", params] as const : ["documents"] as const),
     byId: (id: string) => ["document", id] as const,
     analysis: (id: string) => ["analysis", id] as const,
   },

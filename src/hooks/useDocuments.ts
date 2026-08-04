@@ -86,7 +86,7 @@ export function useDeleteDocument() {
     mutationFn: async ({ documentId }: { documentId: string }) => {
       await documentEndpoints.deleteDocument(documentId);
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       // refetchType: "all" ensures the list refetches even when it has no
       // active subscribers (e.g. a cached documents page in the background).
       queryClient.invalidateQueries({
@@ -94,6 +94,12 @@ export function useDeleteDocument() {
         refetchType: "all",
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all() });
+      if (variables?.documentId) {
+        queryClient.removeQueries({ queryKey: queryKeys.documents.byId(variables.documentId) });
+        queryClient.removeQueries({ queryKey: queryKeys.documents.analysis(variables.documentId) });
+        queryClient.removeQueries({ queryKey: queryKeys.compliance.byDocument(variables.documentId) });
+      }
     },
   });
 }
@@ -126,10 +132,19 @@ export function useResolveFindings() {
       return analysisEndpoints.resolveDocumentFindings(documentId);
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.documents.analysis(variables.documentId),
-      });
+      if (variables?.documentId) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.documents.analysis(variables.documentId),
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.documents.byId(variables.documentId),
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.compliance.byDocument(variables.documentId),
+        });
+      }
       queryClient.invalidateQueries({ queryKey: queryKeys.documents.list() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
     },
   });
 }

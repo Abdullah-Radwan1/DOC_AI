@@ -29,8 +29,7 @@ export function ComplianceProgressCard({
               {requirements.map((req: any, i: number) => {
                 const status = String(req.status).toLowerCase();
                 const isCompliant = status === "compliant" || status === "met";
-                const isNotApplicable =
-                  status === "not applicable" || status === "unknown";
+
                 return (
                   <div
                     key={i}

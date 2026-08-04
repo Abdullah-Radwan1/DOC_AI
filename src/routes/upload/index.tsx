@@ -120,6 +120,7 @@ export function UploadPage() {
                 type="submit"
                 size="lg"
                 disabled={!selectedFile || isSubmitting}
+                className="bg-brand"
               >
                 Upload & Analyze
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -139,9 +140,9 @@ export function UploadPage() {
           <div className="space-y-1">
             <p className="text-sm font-medium">Supported Document Types</p>
             <p className="text-xs text-muted-foreground">
-              This platform supports contracts, NDAs, service agreements, privacy
-              policies, and other legal documents. For best results, ensure your
-              PDFs are text-searchable (not scanned images).
+              This platform supports contracts, NDAs, service agreements,
+              privacy policies, and other legal documents. For best results,
+              ensure your PDFs are text-searchable (not scanned images).
             </p>
           </div>
         </motion.div>

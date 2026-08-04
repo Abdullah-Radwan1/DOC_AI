@@ -463,10 +463,10 @@ export function DocumentPage() {
 
             {/* Executive Summary Statement Card */}
             <motion.div variants={itemVariants}>
-              <Card className="bg-gradient-to-br from-brand/5 via-background to-accent/5 border-brand/20">
+              <Card className="border-border/70 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
                 <CardHeader>
                   <div className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-brand" />
+                    <Target className="h-5 w-5 text-[#2563EB]" />
                     <CardTitle>Executive Summary</CardTitle>
                   </div>
                 </CardHeader>

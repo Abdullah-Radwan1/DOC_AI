@@ -171,7 +171,7 @@ export function DashboardPage() {
       >
         {/* Upcoming Expirations */}
         <motion.div variants={itemVariants} className="h-full">
-          <Card className="h-full flex flex-col justify-between">
+          <Card className="h-full flex flex-col justify-between border-border/70 bg-white">
             <div>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -232,15 +232,15 @@ export function DashboardPage() {
 
         {/* Analyses */}
         <motion.div variants={itemVariants} className="h-full">
-          <Card className="relative overflow-hidden h-full flex flex-col justify-between">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-accent/10 to-info/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <Card className="relative overflow-hidden h-full flex flex-col justify-between border-border/70 bg-white">
+            <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-gradient-to-br from-[#2563EB]/10 to-[#10B981]/10 -translate-y-1/2 translate-x-1/2" />
             <div>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Total Documents Analysed
                 </CardTitle>
-                <div className="p-2 rounded-lg bg-accent/10">
-                  <BarChart3 className="h-4 w-4 text-accent" />
+                <div className="p-2 rounded-lg bg-[#2563EB]/10">
+                  <BarChart3 className="h-4 w-4 text-[#2563EB]" />
                 </div>
               </CardHeader>
               <CardContent>
@@ -398,7 +398,7 @@ export function DashboardPage() {
       {/* ── Recent Analyses ──────────────────────────────────────────────────── */}
       {recentAnalyses.length > 0 && (
         <motion.div variants={itemVariants}>
-          <Card>
+          <Card className="border-border/70 bg-white">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -456,7 +456,7 @@ export function DashboardPage() {
       {/* ── Documents Requiring Attention ────────────────────────────────────── */}
       {attentionDocs.length > 0 && (
         <motion.div variants={itemVariants}>
-          <Card className="border-destructive/20">
+          <Card className="border-destructive/20 bg-white">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>

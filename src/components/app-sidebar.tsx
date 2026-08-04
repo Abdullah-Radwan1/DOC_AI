@@ -66,7 +66,7 @@ function getPlanColor(plan?: string) {
     case "Professional":
       return "text-brand bg-brand/10";
     case "Elite":
-      return "text-violet-500 bg-violet-500/10";
+      return "text-[#7C3AED] bg-[#7C3AED]/10";
     default:
       return "text-muted-foreground bg-muted";
   }
@@ -199,7 +199,7 @@ export function CustomSidebar({
                   onClick={() => setIsMobileOpen(false)}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 group ${
                     isActive
-                      ? "bg-accent text-accent-foreground"
+                      ? "bg-[#2563EB]/10 text-[#2563EB]"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent"
                   }`}
                 >
@@ -216,7 +216,7 @@ export function CustomSidebar({
                     </span>
                   )}
                   {isActive && (
-                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-foreground" />
+                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#2563EB]" />
                   )}
                 </RouterLink>
               );
@@ -253,10 +253,10 @@ export function CustomSidebar({
                   <div
                     className={`h-full rounded-full transition-all duration-700 ${
                       uploadPct >= 100
-                        ? "bg-destructive"
+                        ? "bg-[#EF4444]"
                         : uploadPct >= 75
-                          ? "bg-warning"
-                          : "bg-foreground"
+                          ? "bg-[#F59E0B]"
+                          : "bg-[#2563EB]"
                     }`}
                     style={{ width: `${uploadPct}%` }}
                   />
@@ -275,10 +275,10 @@ export function CustomSidebar({
                   <div
                     className={`h-full rounded-full transition-all duration-700 ${
                       analysisPct >= 100
-                        ? "bg-destructive"
+                        ? "bg-[#EF4444]"
                         : analysisPct >= 75
-                          ? "bg-warning"
-                          : "bg-foreground"
+                          ? "bg-[#F59E0B]"
+                          : "bg-[#2563EB]"
                     }`}
                     style={{ width: `${analysisPct}%` }}
                   />
