@@ -113,7 +113,7 @@ export function Footer() {
                 href="mailto:dockybusiness4@gmail.com"
                 className="text-primary hover:underline font-medium block"
               >
-                dockybusiness4@gmail.com
+                dockybusiness4@gmail.commm
               </a>
             </div>
           </div>
