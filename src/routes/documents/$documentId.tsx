@@ -84,17 +84,19 @@ export function DocumentPage() {
   const analyzeMutation = useAnalyzeDocument();
   const resolveMutation = useResolveFindings();
 
+  const inFlight =
+    statusData?.status === "pending" || statusData?.status === "processing";
+
   // Auto-show the progress bar if we land on this page while an analysis
   // is already in progress (e.g. navigated here from the upload page).
   useEffect(() => {
-    const s = statusData?.status;
-    if ((s === "pending" || s === "processing") && !showProgressBar) {
+    if (inFlight) {
       setShowProgressBar(true);
       setIsAnalyzing(true);
     }
-  }, [statusData?.status]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [inFlight]);
 
-  if (docLoading || analysisLoading) {
+  if (docLoading || (!inFlight && !showProgressBar && analysisLoading)) {
     return (
       <div className="flex flex-col xl:flex-row gap-6 max-w-[1400px] mx-auto pb-10">
         <div className="flex-1 space-y-6 min-w-0">
@@ -160,7 +162,10 @@ export function DocumentPage() {
   // True only when the AI pipeline has produced real content.
   // A pending / processing / failed AnalysisRequest with no summary does NOT
   // count — that would show empty sections and hide the Analyze button wrongly.
-  const hasAnalysis = !!(analysis as any)?.summary;
+  const hasAnalysis = !!(
+    (analysis as any)?.summary ||
+    (analysis as any)?.compliance?.overallVerdict
+  );
 
   const handleAnalyze = async () => {
     if (isAnalyzing) return;
@@ -185,8 +190,6 @@ export function DocumentPage() {
       description: "Your contract has been fully analyzed.",
     });
     setIsAnalyzing(false);
-    // Await the data refresh so hasAnalysis is true before we hide CASE 2,
-    // preventing any flash of the "no analysis" state.
     await refetchAnalysis();
     setTimeout(() => setShowProgressBar(false), 600);
   };
@@ -216,7 +219,7 @@ export function DocumentPage() {
 
   // ─── CASE 2: Analysis currently in progress ──────────────────────────────────
   // Show a focused, full-page view. No sidebar, no empty analysis sections.
-  if (isAnalyzing || showProgressBar) {
+  if (isAnalyzing || showProgressBar || inFlight) {
     return (
       <motion.div
         initial={{ opacity: 0 }}

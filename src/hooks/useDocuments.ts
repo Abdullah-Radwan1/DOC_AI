@@ -112,11 +112,15 @@ export function useAnalyzeDocument() {
     mutationFn: async ({ documentId }: { documentId: string }) => {
       return analysisEndpoints.triggerDocumentAnalysis(documentId);
     },
-    onSuccess: (_data, variables) => {
-      // The mutation now returns immediately with { requestId } before analysis
-      // is done. Do NOT invalidate the analysis query here — it will return
-      // stale/empty data. The AnalysisProgressBar's onComplete callback drives
-      // the refetchAnalysis() call once polling detects "completed".
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(
+        queryKeys.documents.analysisStatus(variables.documentId),
+        {
+          id: data.requestId,
+          status: "pending",
+          errorMessage: null,
+        },
+      );
       queryClient.invalidateQueries({ queryKey: queryKeys.documents.list() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
     },
@@ -155,7 +159,7 @@ export function useDocumentAnalysisStatus(
   enabled = true,
 ) {
   return useQuery({
-    queryKey: ["analysis-status", documentId],
+    queryKey: queryKeys.documents.analysisStatus(documentId ?? ""),
     queryFn: async () => {
       if (!documentId) return null;
       return analysisEndpoints.getDocumentAnalysisStatus(documentId);
@@ -163,11 +167,15 @@ export function useDocumentAnalysisStatus(
     enabled: !!documentId && enabled,
     refetchInterval: (query) => {
       const status = query.state.data?.status;
-      // Stop polling once a terminal state is reached
-      if (status === "completed" || status === "failed" || status === null) {
+      if (status === "completed" || status === "failed") {
         return false;
       }
-      return 1500; // poll every 1.5 s while pending / processing
+      if (status === "pending" || status === "processing") {
+        return 1500;
+      }
+      // status is null/undefined: keep polling briefly so a just-created
+      // request is not missed, then stop so idle documents are not hammered.
+      return query.state.dataUpdateCount < 40 ? 1500 : false;
     },
     staleTime: 0,
   });

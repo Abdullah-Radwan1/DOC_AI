@@ -183,31 +183,33 @@ export function useDocumentUploadFlow() {
         options: analysisOptions,
       });
 
-      // The API now returns { requestId } immediately — analysis runs in the
-      // background. Don't try to read verdict/riskLevel from the response;
-      // those fields only exist after the AI pipeline finishes.
-      const requestId = (analysisResult as any)?.requestId ?? 'n/a';
+      const requestId = (analysisResult as any)?.requestId;
+      if (!requestId) {
+        throw new Error("Analysis was queued but no requestId was returned.");
+      }
+
+      queryClient.setQueryData(queryKeys.documents.analysisStatus(documentResult.id), {
+        id: requestId,
+        status: "pending",
+        errorMessage: null,
+      });
 
       setAnalysisStep({
         status: "success",
-        message: `Status 202: Analysis queued (request: ${requestId}). AI is processing in the background…`,
+        message: `Status 202: Analysis queued (request: ${requestId}). Opening live progress…`,
       });
 
       setStatus("complete");
       setAnalysisCompleted(true);
       setUploadedDocumentId(documentResult.id);
 
-      toast.success("Document ready — analysis in progress!", {
-        description:
-          "Track the live stage-by-stage progress on the document page.",
-        action: {
-          label: "View Progress",
-          onClick: () =>
-            navigate({
-              to: "/dashboard/documents/$documentId",
-              params: { documentId: documentResult.id },
-            }),
-        },
+      toast.success("Analysis started", {
+        description: "Opening the document page to track progress and show results.",
+      });
+
+      await navigate({
+        to: "/dashboard/documents/$documentId",
+        params: { documentId: documentResult.id },
       });
     } catch (error: any) {
       setAnalysisStep({

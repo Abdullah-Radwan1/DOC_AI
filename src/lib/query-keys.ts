@@ -12,6 +12,7 @@ export const queryKeys = {
     list: (params?: DocumentQueryParams) => (params ? ["documents", params] as const : ["documents"] as const),
     byId: (id: string) => ["document", id] as const,
     analysis: (id: string) => ["analysis", id] as const,
+    analysisStatus: (id: string) => ["analysis-status", id] as const,
   },
   activity: {
     list: () => ["activity"] as const,

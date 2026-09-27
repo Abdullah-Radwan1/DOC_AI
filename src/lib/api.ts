@@ -1,11 +1,12 @@
 import axios from "axios";
 
 // Get the API URL from environment variables, or default to localhost:3000
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
+const baseURL = "http://localhost:3000";
+// import.meta.env.VITE_API_URL ||
 export const api = axios.create({
   baseURL,
   withCredentials: true, // This is crucial for sending and receiving httpOnly cookies
+  timeout: 120_000,
 });
 
 // Response interceptor to handle 401 Unauthorized globally
@@ -19,4 +20,3 @@ api.interceptors.response.use(
     return Promise.reject(error);
   },
 );
-

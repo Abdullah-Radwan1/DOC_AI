@@ -11,10 +11,18 @@ export async function getDocumentAnalysis(
   const latestQuery =
     rawQueries.find(
       (entry: any) =>
+        (entry?.status === "completed" || !entry?.status) &&
+        (entry?.response?.AnalysisResult ||
+          entry?.response?.analysisResult ||
+          entry?.response?.analysis_result),
+    ) ??
+    rawQueries.find(
+      (entry: any) =>
         entry?.response?.AnalysisResult ||
         entry?.response?.analysisResult ||
         entry?.response?.analysis_result,
-    ) ?? rawQueries[0];
+    ) ??
+    rawQueries[0];
 
   if (!latestQuery) {
     return null;
