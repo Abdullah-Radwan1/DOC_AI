@@ -1,8 +1,7 @@
 import axios from "axios";
 
 // Get the API URL from environment variables, or default to localhost:3000
-const baseURL = "http://localhost:3000";
-// import.meta.env.VITE_API_URL ||
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 export const api = axios.create({
   baseURL,
   withCredentials: true, // This is crucial for sending and receiving httpOnly cookies
