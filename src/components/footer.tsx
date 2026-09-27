@@ -26,7 +26,7 @@ export function Footer() {
               </span>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted border border-border">
                 <Sparkles className="w-3 h-3 text-amber-500" /> Enterprise AI
-                (Zero Model Training)
+                testing
               </span>
             </div>
           </div>
